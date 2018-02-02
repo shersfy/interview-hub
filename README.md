@@ -1,5 +1,5 @@
 # interview-hub
-收集Java面试知识点1
+收集Java面试知识点
 1. Java常用设计模式；
 2. 常用关系型数据库；
 3. 常用nosql数据库；
