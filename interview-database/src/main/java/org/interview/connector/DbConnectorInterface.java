@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.interview.common.Const;
-import org.interview.exception.DatahubException;
+import org.interview.exception.StandardException;
 import org.interview.exception.NetException;
 import org.interview.exception.TooManyConnectionException;
 import org.interview.meta.ColumnMeta;
@@ -77,7 +77,7 @@ public abstract class DbConnectorInterface {
 	 * @param type
 	 *            访问类型
 	 * 
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public abstract String loadDriverClass(DBAccessType type);
 
@@ -89,7 +89,7 @@ public abstract class DbConnectorInterface {
 	 * 
 	 * @return List<DBMeta>
 	 */
-	public abstract List<DBMeta> getDatabases(Connection conn) throws DatahubException;
+	public abstract List<DBMeta> getDatabases(Connection conn) throws StandardException;
 
 	/**
 	 * 获取创建表的DDL。根据列参数创建, 当列参数为空时, 显示已经存在的表DDL。 <br/>
@@ -103,10 +103,10 @@ public abstract class DbConnectorInterface {
 	 * @param conn 数据库连接
 	 * @param isClose  是否关闭连接
 	 * @return
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public String getDDLByTable(TableMeta table, List<ColumnMeta> columns, Connection conn) 
-			throws DatahubException{
+			throws StandardException{
 
 		if (table == null || StringUtils.isBlank(table.getName())) {
 			return StringUtils.EMPTY;
@@ -121,7 +121,7 @@ public abstract class DbConnectorInterface {
 
 		for(int i=0; i<columns.size(); i++){
 			if(StringUtils.isBlank(columns.get(i).getName())){
-				throw new DatahubException(String.format("column name can not empty [index=%s]", i));
+				throw new StandardException(String.format("column name can not empty [index=%s]", i));
 			}
 		}
 
@@ -199,10 +199,10 @@ public abstract class DbConnectorInterface {
 	 * @param conn 数据库连接
 	 * @param isClose  是否关闭连接
 	 * @return String
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public abstract String showCreateTable(TableMeta table, Connection conn) 
-			throws DatahubException;
+			throws StandardException;
 
 	/**
 	 * 表是否存在, true 存在, false不存在
@@ -214,9 +214,9 @@ public abstract class DbConnectorInterface {
 	 * @param conn 数据库连接
 	 * @param isClose  是否关闭连接
 	 * @return boolean
-	 * @throws DatahubException 
+	 * @throws StandardException 
 	 */
-	public boolean exist(TableMeta table, Connection conn) throws DatahubException{
+	public boolean exist(TableMeta table, Connection conn) throws StandardException{
 		if(table==null|| conn==null){
 			return false;
 		}
@@ -225,7 +225,7 @@ public abstract class DbConnectorInterface {
 		List<ColumnMeta> list = new ArrayList<>();
 		try {
 			list = getColumns(table, conn);
-		} catch (DatahubException de) {
+		} catch (StandardException de) {
 			if(de.getCause()!=null 
 					&& de.getCause().getMessage()!=null 
 					&& de.getCause().getMessage().contains("doesn't exist")){
@@ -244,7 +244,7 @@ public abstract class DbConnectorInterface {
 	 * 
 	 * @param table
 	 * @return String
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public String getFullTableName(TableMeta table) {
 
@@ -272,10 +272,10 @@ public abstract class DbConnectorInterface {
 	 * @param javaType java.sql.Types类型
 	 * @param column 列元信息
 	 * @return String
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public abstract String javaTypeToDbType(int javaType, ColumnMeta column) 
-			throws DatahubException;
+			throws StandardException;
 
 	/**
 	 * 创建表<br/>
@@ -285,9 +285,9 @@ public abstract class DbConnectorInterface {
 	 * @param sql 建表SQL 
 	 * @param conn 数据库连接
 	 * @return
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
-	public boolean createTable(String sql, Connection conn) throws DatahubException{
+	public boolean createTable(String sql, Connection conn) throws StandardException{
 		if(conn==null||StringUtils.isBlank(sql)){
 			return false;
 		}
@@ -300,7 +300,7 @@ public abstract class DbConnectorInterface {
 			// false if it is an update count or there are no results
 			return true;
 		} catch (Exception e) {
-			throw new DatahubException(e, "create table error\n%s", e.getMessage());
+			throw new StandardException(e, "create table error\n%s", e.getMessage());
 		} finally {
 			close(st);
 		}
@@ -315,7 +315,7 @@ public abstract class DbConnectorInterface {
 	 * 
 	 * @param sqls 建表SQL 
 	 * @return 成功返回true, 失败返回false, sqls为空返回null
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public boolean[] createTable(String[] sqls, Connection conn){
 
@@ -376,9 +376,9 @@ public abstract class DbConnectorInterface {
 	 * @param conn 数据库连接
 	 * @param isClose  是否关闭连接
 	 * @return boolean
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
-	public boolean dropTable(TableMeta table, Connection conn) throws DatahubException{
+	public boolean dropTable(TableMeta table, Connection conn) throws StandardException{
 		if(conn == null
 				|| table==null
 				|| StringUtils.isBlank(table.getName())){
@@ -398,7 +398,7 @@ public abstract class DbConnectorInterface {
 				return true;
 			}
 		} catch (Exception e) {
-			DatahubException de = new DatahubException("drop table error");
+			StandardException de = new StandardException("drop table error");
 			logger.error("drop table error", e);
 			throw de;
 		} finally {
@@ -415,7 +415,7 @@ public abstract class DbConnectorInterface {
 	 * @return List<DBMeta>
 	 */
 	public List<StoredProc> getStoredProces(Connection conn) 
-			throws DatahubException{
+			throws StandardException{
 		return null;
 	}
 	/***
@@ -426,7 +426,7 @@ public abstract class DbConnectorInterface {
 	 * 
 	 * @return List<DBMeta>
 	 */
-	public List<FunctionDef> getFunctonsByUserDef(Connection conn) throws DatahubException{
+	public List<FunctionDef> getFunctonsByUserDef(Connection conn) throws StandardException{
 		return null;
 	}
 	/**
@@ -446,7 +446,7 @@ public abstract class DbConnectorInterface {
 	 * @return String 处理过的SQL语句
 	 */
 	public abstract String queryByPage(String baseSql, long pageNo,
-			long pageSize)  throws DatahubException;
+			long pageSize)  throws StandardException;
 	
 	/**
 	 * 获取分块切分点的查询SQL
@@ -516,10 +516,10 @@ public abstract class DbConnectorInterface {
 	 * @param isClose  是否关闭连接
 	 * 
 	 * @return List<String>
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public List<TableMeta> getTables(String catalog, String schema, TableType[] types, 
-			Connection conn) throws DatahubException {
+			Connection conn) throws StandardException {
 
 		List<TableMeta> list = new ArrayList<TableMeta>();
 		ResultSet res = null;
@@ -569,7 +569,7 @@ public abstract class DbConnectorInterface {
 			}
 		} catch (Exception e) {
 			String err = String.format("Get tables error [catalog=%s, schema=%s]", catalog, schema);
-			throw new DatahubException(err, e);
+			throw new StandardException(err, e);
 		} finally {
 			close(res);
 		}
@@ -586,12 +586,12 @@ public abstract class DbConnectorInterface {
 	 * @param isClose  是否关闭连接
 	 * 
 	 * @return List<ColumnMeta>
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public List<ColumnMeta> getPartitionColumns(TableMeta table, Connection conn)
-			throws DatahubException {
+			throws StandardException {
 		if(table == null || StringUtils.isBlank(table.getName())){
-			throw new DatahubException("table name can not empty");
+			throw new StandardException("table name can not empty");
 		}
 
 		if(StringUtils.isBlank(table.getSchema())){
@@ -606,7 +606,7 @@ public abstract class DbConnectorInterface {
 	}
 	
 	public List<ColumnMeta> getPartitionColumns(TableMeta table, Connection conn, String ddl) 
-			throws DatahubException{
+			throws StandardException{
 		return getPartitionColumns(table, conn);
 	}
 
@@ -621,12 +621,12 @@ public abstract class DbConnectorInterface {
 	 * @param conn 数据库连接
 	 * @param isClose  是否关闭连接
 	 * @return List<String>
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public List<PartitionMeta> getPartitions(TableMeta table, Connection conn)
-			throws DatahubException {
+			throws StandardException {
 		if(table == null || StringUtils.isBlank(table.getName())){
-			throw new DatahubException("table name can not empty");
+			throw new StandardException("table name can not empty");
 		}
 
 		if(StringUtils.isBlank(table.getSchema())){
@@ -707,15 +707,15 @@ public abstract class DbConnectorInterface {
 	 * @param table 表
 	 * @param conn 连接
 	 * @return 
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public List<ColumnMeta> getColumnsWithPartition(TableMeta table, Connection conn)
-			throws DatahubException {
+			throws StandardException {
 		return getColumns(table, conn);
 	}
 	
 	public List<ColumnMeta> getColumnsWithPartition(TableMeta table, Connection conn, String ddl)
-			throws DatahubException {
+			throws StandardException {
 		return getColumns(table, conn);
 	}
 
@@ -728,13 +728,13 @@ public abstract class DbConnectorInterface {
 	 * @param table 表
 	 * @param conn 连接
 	 * @return 
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public List<ColumnMeta> getColumns(TableMeta table, Connection conn)
-			throws DatahubException {
+			throws StandardException {
 
 		if(table == null || StringUtils.isBlank(table.getName())){
-			throw new DatahubException("table name can not empty");
+			throw new StandardException("table name can not empty");
 		}
 
 		if(StringUtils.isBlank(table.getSchema())){
@@ -820,7 +820,7 @@ public abstract class DbConnectorInterface {
 		} catch (Exception e) {
 			String err = String.format("Get columns error [tableName=%s, catalog=%s, schema=%s]", 
 					table.getName(), table.getCatalog(), table.getSchema());
-			throw new DatahubException(err, e);
+			throw new StandardException(err, e);
 
 		} finally {
 			close(resPks, res);
@@ -853,9 +853,9 @@ public abstract class DbConnectorInterface {
 	 * @date 2016-10-26
 	 * 
 	 * @return Connection
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
-	public Connection connection() throws DatahubException {
+	public Connection connection() throws StandardException {
 		if (dbMeta == null) {
 			return null;
 		}
@@ -870,9 +870,9 @@ public abstract class DbConnectorInterface {
 			try {
 				pro.put("password", AesUtil.decryptStr(dbMeta.getPassword(),
 						AesUtil.AES_SEED));
-			} catch (DatahubException de) {
+			} catch (StandardException de) {
 				logger.error("", de);
-				throw new DatahubException("password mistake");
+				throw new StandardException("password mistake");
 			}
 			String driver = this.loadDriverClass(dbMeta.getAccessType());
 			Class.forName(driver);
@@ -887,7 +887,7 @@ public abstract class DbConnectorInterface {
 			while(conn==null){
 
 				if(spend>=timeout){
-					throw new DatahubException(connName + " reconnect timeout "+timeout);
+					throw new StandardException(connName + " reconnect timeout "+timeout);
 				}
 				
 				try {
@@ -904,17 +904,17 @@ public abstract class DbConnectorInterface {
 					if(!dbMeta.isAwait()){
 						String err = "database %s too many connections, please try again later...";
 						err = String.format(err, connName);
-						throw new DatahubException(err);
+						throw new StandardException(err);
 					}
 					// 网络异常
 					if(times>dbMeta.getRetryTimes() && ex instanceof NetException){
 						String err = "database %s network error, please try again later...";
 						err = String.format(err, connName);
-						throw new DatahubException(err);
+						throw new StandardException(err);
 					}
 					// 网络异常
 					if(ex instanceof NetException){
-						logger.error(DatahubException.getCauseMsg(ex));
+						logger.error(StandardException.getCauseMsg(ex));
 					}
 					
 					String info = "DB connector {} {}, please await {} seconds retry...";
@@ -932,8 +932,8 @@ public abstract class DbConnectorInterface {
 			}
 
 		} catch (Throwable ex) {
-			if(ex instanceof DatahubException){
-				throw (DatahubException)ex;
+			if(ex instanceof StandardException){
+				throw (StandardException)ex;
 			} 
 
 			// "数据库连接异常, %s\n%s", dbMeta.getUrl(), e.getMessage()
@@ -943,7 +943,7 @@ public abstract class DbConnectorInterface {
 			}
 			String err = errCode+ex.getMessage();
 			err = String.format("database connection exception, %s\\n%s", dbMeta.getUrl(), err);
-			DatahubException de = new DatahubException(err, ex);
+			StandardException de = new StandardException(err, ex);
 			throw de;
 		}
 
@@ -957,12 +957,12 @@ public abstract class DbConnectorInterface {
 	 * @date 2017-07-03
 	 * 
 	 * @return
-	 * @throws DatahubException 
+	 * @throws StandardException 
 	 */
-	public boolean checkAvailable() throws DatahubException{
+	public boolean checkAvailable() throws StandardException{
 		String prefix = getJDBCPrefix();
 		if(!dbMeta.getUrl().startsWith(prefix)){
-			throw new DatahubException(String.format("invalid JDBC url format %s connect to %s", dbMeta.getUrl(), dbMeta.getCode()));
+			throw new StandardException(String.format("invalid JDBC url format %s connect to %s", dbMeta.getUrl(), dbMeta.getCode()));
 		}
 		return true;
 	}
@@ -985,10 +985,10 @@ public abstract class DbConnectorInterface {
 	 * 
 	 * @param typeCode
 	 * @return
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public static DbConnectorInterface getInstance(DBMeta dbMeta)
-			throws DatahubException {
+			throws StandardException {
 
 		if(dbMeta==null 
 				|| StringUtils.isBlank(dbMeta.getCode())){
@@ -1007,7 +1007,7 @@ public abstract class DbConnectorInterface {
 		} catch (Exception e) {
 			String err = "initialize database connector exception [%s]";
 			err = String.format(err,  clazz.toString());
-			throw new DatahubException(err, e);
+			throw new StandardException(err, e);
 		} 
 		return db;
 	}
@@ -1023,16 +1023,16 @@ public abstract class DbConnectorInterface {
 	 * @param close 是否关闭连接
 	 * @param sql 执行SQL
 	 * @return GridData
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public GridData executeQuery(Connection conn, String sql)
-			throws DatahubException {
+			throws StandardException {
 		GridData dataSet = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
 			if(StringUtils.isBlank(sql)){
-				throw new DatahubException("SQL is blank.");
+				throw new StandardException("SQL is blank.");
 			}
 			if(conn == null || conn.isClosed()){
 				conn = connection();
@@ -1045,7 +1045,7 @@ public abstract class DbConnectorInterface {
 
 		} catch (Exception e) {
 			logger.error(sql);
-			throw new DatahubException("execute sql error: "+sql, e);
+			throw new StandardException("execute sql error: "+sql, e);
 		} finally {
 			close(rs, stmt);
 		}
@@ -1065,10 +1065,10 @@ public abstract class DbConnectorInterface {
 	 * @param sql
 	 * @param args 参数
 	 * @return 二维数据
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public GridData executeQueryByParams(Connection conn, String sql, Object...args)
-			throws DatahubException {
+			throws StandardException {
 		if(args == null || args.length==0){
 			return executeQuery(conn, sql);
 		}
@@ -1099,7 +1099,7 @@ public abstract class DbConnectorInterface {
 
 		} catch (Exception e) {
 			logger.error(sql);
-			throw new DatahubException("execute sql error: "+sql, e);
+			throw new StandardException("execute sql error: "+sql, e);
 		} finally {
 			close(rs, stmt);
 		}
@@ -1120,7 +1120,7 @@ public abstract class DbConnectorInterface {
 	 * @param rs
 	 * @return
 	 * @throws SQLException
-	 * @throws DatahubException 
+	 * @throws StandardException 
 	 */
 	public GridData packageData(Connection conn, ResultSet rs) throws SQLException{
 		GridData dataSet = new GridData();
@@ -1180,10 +1180,10 @@ public abstract class DbConnectorInterface {
 	 * @param isClose  是否关闭连接
 	 * 
 	 * @return DataSet
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public Long queryCount(String countSql, Connection conn)
-			throws DatahubException {
+			throws StandardException {
 		long cnt = 0;
 		Statement stmt = null;
 		ResultSet rs   = null;
@@ -1200,7 +1200,7 @@ public abstract class DbConnectorInterface {
 			}
 		} catch (Exception e) {
 			logger.error(sql);
-			throw new DatahubException("execute sql error: "+sql, e);
+			throw new StandardException("execute sql error: "+sql, e);
 		} finally {
 			close(rs, stmt);
 		}
@@ -1216,9 +1216,9 @@ public abstract class DbConnectorInterface {
 	 * @param sql
 	 *            被执行的SQL
 	 * @return 影响行数
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
-	public int executeUpdate(Connection conn, String sql) throws DatahubException {
+	public int executeUpdate(Connection conn, String sql) throws StandardException {
 		Statement stmt = null;
 		int cnt = 0;
 		try {
@@ -1227,7 +1227,7 @@ public abstract class DbConnectorInterface {
 			cnt = stmt.executeUpdate(sql);
 		} catch (Exception e) {
 			logger.error(sql);
-			throw new DatahubException("execute sql error: "+sql, e);
+			throw new StandardException("execute sql error: "+sql, e);
 		} finally {
 			close(stmt);
 		}
@@ -1243,10 +1243,10 @@ public abstract class DbConnectorInterface {
 	 * @param params
 	 *            参数
 	 * @return 影响行数
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
 	public int executeUpdate(Connection conn, String sql, Object... params)
-			throws DatahubException {
+			throws StandardException {
 		int cnt = 0;
 		PreparedStatement stmt = null;
 		try {
@@ -1265,7 +1265,7 @@ public abstract class DbConnectorInterface {
 			cnt = stmt.executeUpdate();
 		} catch (Exception e) {
 			logger.error(sql);
-			throw new DatahubException("execute sql error: "+sql, e);
+			throw new StandardException("execute sql error: "+sql, e);
 		} finally {
 			close(stmt);
 		}
@@ -1277,7 +1277,7 @@ public abstract class DbConnectorInterface {
 		return dbMeta;
 	}
 
-	public void setDbMeta(DBMeta dbMeta) throws DatahubException{
+	public void setDbMeta(DBMeta dbMeta) throws StandardException{
 		this.dbMeta = dbMeta;
 	}
 
@@ -1320,7 +1320,7 @@ public abstract class DbConnectorInterface {
 			meta.setStoredProces(getStoredProces(conn));
 			meta.setFunctions(getFunctonsByUserDef(conn));
 
-		} catch (DatahubException e) {
+		} catch (StandardException e) {
 			logger.error(e.getSuperMessage());
 		}
 		return meta;
@@ -1333,9 +1333,9 @@ public abstract class DbConnectorInterface {
 	 * @param conn 数据库连接
 	 * @param isClose  是否关闭连接
 	 * @return long
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
-	public long countPages(String countSql, int pageSize, Connection conn) throws DatahubException{
+	public long countPages(String countSql, int pageSize, Connection conn) throws StandardException{
 		long totalSize = queryCount(countSql, conn);
 		return this.countPages(totalSize, pageSize);
 	}
@@ -1347,9 +1347,9 @@ public abstract class DbConnectorInterface {
 	 * @date 2017-05-04
 	 * 
 	 * @return long
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
-	public long countPages(long totalSize, long pageSize) throws DatahubException{
+	public long countPages(long totalSize, long pageSize) throws StandardException{
 		if(totalSize%pageSize==0){
 			totalSize = totalSize/pageSize;
 		}
@@ -1459,7 +1459,7 @@ public abstract class DbConnectorInterface {
 	 * @param data
 	 * @return
 	 * @throws SQLException 
-	 * @throws DatahubException 
+	 * @throws StandardException 
 	 */
 	public FieldData formatWrittenFieldData(Connection conn, ColumnMeta column, FieldData field) throws SQLException{
 
@@ -1608,7 +1608,7 @@ public abstract class DbConnectorInterface {
 	 * @param data
 	 * @return
 	 * @throws SQLException 
-	 * @throws DatahubException 
+	 * @throws StandardException 
 	 */
 	public FieldData formatFieldData(Connection conn, ColumnMeta column, FieldData field) 
 			throws SQLException {
@@ -1724,9 +1724,9 @@ public abstract class DbConnectorInterface {
 	 * @param dbName 数据库名称
 	 * @param shortPath true短路径, false 全路径
 	 * @return 返回数据库位置
-	 * @throws DatahubException 
+	 * @throws StandardException 
 	 */
-	public String getDBWarehouseLocation(Connection conn, String dbName, boolean shortPath) throws DatahubException{
+	public String getDBWarehouseLocation(Connection conn, String dbName, boolean shortPath) throws StandardException{
 		return "";
 	}
 	
@@ -1784,15 +1784,15 @@ public abstract class DbConnectorInterface {
 	 * 
 	 * @param url 连接url
 	 * @return DB连接信息
-	 * @throws DatahubException
+	 * @throws StandardException
 	 */
-	public static DBMeta getMetaByUrl(String url) throws DatahubException{
+	public static DBMeta getMetaByUrl(String url) throws StandardException{
 		if(StringUtils.isBlank(url)){
 			return null;
 		}
 		String err = "url format error: %s";
 		if(!url.contains("//")||!url.substring(url.indexOf("//")+2).contains("/")||!url.contains(":")){
-			throw new DatahubException(String.format(err, url));
+			throw new StandardException(String.format(err, url));
 		}
 		
 		String arr[]  = null;
@@ -1802,7 +1802,7 @@ public abstract class DbConnectorInterface {
 		String host  = url.substring(index, url.indexOf("/", index));
 		arr = host.split(",")[0].trim().split(":");
 		if(arr.length <2){
-			throw new DatahubException(String.format(err, url));
+			throw new StandardException(String.format(err, url));
 		}
 		Integer port = Integer.valueOf(arr[1]);
 		
@@ -1859,7 +1859,7 @@ public abstract class DbConnectorInterface {
 	 * @param fullTableName 表全名
 	 * @return  update inset sql
 	 */
-	public String getUpdateInsert(List<ColumnMeta> cols, String fullTableName) throws DatahubException{
+	public String getUpdateInsert(List<ColumnMeta> cols, String fullTableName) throws StandardException{
 		return null;
 	}
 	

@@ -13,7 +13,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.interview.common.Const;
-import org.interview.exception.DatahubException;
+import org.interview.exception.StandardException;
 import org.interview.meta.ColumnMeta;
 import org.interview.meta.DBAccessType;
 import org.interview.meta.DBMeta;
@@ -44,7 +44,7 @@ public class DB2Connector extends DbConnectorInterface {
 
 	@Override
 	public String queryByPage(String baseSql, long pageNo,
-			long pageSize)  throws DatahubException{
+			long pageSize)  throws StandardException{
 
 		Connection conn = null;
 		try {
@@ -67,10 +67,10 @@ public class DB2Connector extends DbConnectorInterface {
 			}
 
 			return sql;
-		} catch (DatahubException de) {
+		} catch (StandardException de) {
 			throw de;
 		} catch (Exception e) {
-			throw new DatahubException("queryByPage() error", e);
+			throw new StandardException("queryByPage() error", e);
 		} finally {
 			close(conn);
 		}
@@ -122,7 +122,7 @@ public class DB2Connector extends DbConnectorInterface {
 	}
 
 	@Override
-	public List<DBMeta> getDatabases(Connection conn) throws DatahubException {
+	public List<DBMeta> getDatabases(Connection conn) throws StandardException {
 		List<DBMeta> dbs = new ArrayList<DBMeta>();
 		ResultSet rs = null;
 		try {
@@ -150,7 +150,7 @@ public class DB2Connector extends DbConnectorInterface {
 				}
 			}
 		} catch (Exception e) {
-			throw new DatahubException("list databses error", e);
+			throw new StandardException("list databses error", e);
 		} finally {
 			close(rs);
 		}
@@ -163,7 +163,7 @@ public class DB2Connector extends DbConnectorInterface {
 
 	@Override
 	public String javaTypeToDbType(int javaType, ColumnMeta column)
-			throws DatahubException {
+			throws StandardException {
 		String type = javaTypeToDbTypeMap.get(Integer.valueOf(javaType));
 		if( StringUtils.isBlank(type)){
 			type = javaTypeToDbTypeMap.get(Integer.valueOf(Types.LONGVARCHAR));
@@ -251,7 +251,7 @@ public class DB2Connector extends DbConnectorInterface {
 	}
 
 	@Override
-	public String showCreateTable(TableMeta table, Connection conn) throws DatahubException {
+	public String showCreateTable(TableMeta table, Connection conn) throws StandardException {
 		// 读取列
 		if(table == null || conn == null){
 			return "";

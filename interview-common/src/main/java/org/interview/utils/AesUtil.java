@@ -15,7 +15,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
-import org.interview.exception.DatahubException;
+import org.interview.exception.StandardException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,24 +50,24 @@ public class AesUtil {
 
 	/**
 	 * 解密
-	 * @throws DatahubException 
+	 * @throws StandardException 
 	 */
-	public static String decryptStr(String content, String seed) throws DatahubException {
+	public static String decryptStr(String content, String seed) throws StandardException {
 		byte[] bytes = Base64.decodeBase64(content.getBytes());
 		String originalStr = new String(AesUtil.decrypt(bytes, seed));
 		return originalStr;
 	}
 
-	public static String decryptHexStr(String content, String seed) throws DatahubException {
+	public static String decryptHexStr(String content, String seed) throws StandardException {
 		try {
 			byte[] bytes = Hex.decodeHex(content.toCharArray());
 			String originalStr = new String(AesUtil.decrypt(bytes, seed));
 			return originalStr;
 		} catch (Exception e) {
-			if(e instanceof DatahubException){
-				throw (DatahubException)e;
+			if(e instanceof StandardException){
+				throw (StandardException)e;
 			}
-			throw new DatahubException(e);
+			throw new StandardException(e);
 		}
 	}
 
@@ -106,9 +106,9 @@ public class AesUtil {
 
 	/**
 	 * 解密
-	 * @throws DatahubException 
+	 * @throws StandardException 
 	 */
-	private static byte[] decrypt(byte[] content, String seed) throws DatahubException {
+	private static byte[] decrypt(byte[] content, String seed) throws StandardException {
 		try {
 			KeyGenerator kgen = KeyGenerator.getInstance(AES);
 			SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
@@ -122,7 +122,7 @@ public class AesUtil {
 			byte[] result = cipher.doFinal(content);
 			return result;
 		} catch (Exception e) {
-			throw new DatahubException(e);
+			throw new StandardException(e);
 		}
 	}
 

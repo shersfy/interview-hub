@@ -14,7 +14,7 @@ import org.apache.commons.lang.StringUtils;
  *
  * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
-public class DatahubException extends Exception{
+public class StandardException extends Exception{
 	  /**
 	 * 
 	 */
@@ -23,7 +23,7 @@ public class DatahubException extends Exception{
 	/**
 	   * Constructs a new throwable with null as its detail message.
 	   */
-	  public DatahubException() {
+	  public StandardException() {
 	    super();
 	  }
 
@@ -33,7 +33,7 @@ public class DatahubException extends Exception{
 	   * @param message
 	   *          - the detail message. The detail message is saved for later retrieval by the getMessage() method.
 	   */
-	  public DatahubException( String message ) {
+	  public StandardException( String message ) {
 	    super( message );
 	  }
 
@@ -45,7 +45,7 @@ public class DatahubException extends Exception{
 	   *          the cause (which is saved for later retrieval by the getCause() method). (A null value is permitted, and
 	   *          indicates that the cause is nonexistent or unknown.)
 	   */
-	  public DatahubException( Throwable cause ) {
+	  public StandardException( Throwable cause ) {
 	    super( cause );
 	  }
 
@@ -58,7 +58,7 @@ public class DatahubException extends Exception{
 	   *          the cause (which is saved for later retrieval by the getCause() method). (A null value is permitted, and
 	   *          indicates that the cause is nonexistent or unknown.)
 	   */
-	  public DatahubException( String message, Throwable cause ) {
+	  public StandardException( String message, Throwable cause ) {
 	    super(message, cause );
 	  }
 	  
@@ -68,7 +68,7 @@ public class DatahubException extends Exception{
 	   * @param cause 异常
 	   * @param msgArgs 参数列表
 	   */
-	  public DatahubException(Throwable cause, String message, Object...msgArgs) {
+	  public StandardException(Throwable cause, String message, Object...msgArgs) {
 		  super(msgArgs!=null?String.format(message, msgArgs):message.replace("%s", ""), cause);
 	  }
 
@@ -146,8 +146,8 @@ public class DatahubException extends Exception{
 	   */
 	  public static String getCauseMsg(Throwable ex){
 			String error = ex.getMessage();
-			if(ex instanceof DatahubException){
-				DatahubException de = (DatahubException) ex;
+			if(ex instanceof StandardException){
+				StandardException de = (StandardException) ex;
 				error = de.getSuperMessage();
 			}
 			else if(ex.getCause()!=null){

@@ -26,7 +26,7 @@ import org.interview.meta.TableMeta;
 import org.interview.meta.GridData;
 
 import org.interview.common.Const;
-import org.interview.exception.DatahubException;
+import org.interview.exception.StandardException;
 import org.interview.exception.NetException;
 import org.interview.exception.TooManyConnectionException;
 import org.interview.utils.DateUtil;
@@ -64,7 +64,7 @@ public class MySQLConnector extends DbConnectorInterface {
 
 	@Override
 	public String queryByPage(String baseSql, long pageNo,
-			long pageSize) throws DatahubException {
+			long pageSize) throws StandardException {
 		if(StringUtils.isBlank(baseSql) ){
 			return null;
 		}
@@ -97,7 +97,7 @@ public class MySQLConnector extends DbConnectorInterface {
 	}
 
 	@Override
-	public void setDbMeta(DBMeta dbMeta) throws DatahubException {
+	public void setDbMeta(DBMeta dbMeta) throws StandardException {
 		Properties params = dbMeta.getParams();
 		if(StringUtils.isBlank(params.getProperty("connectTimeout"))){
 			params.put("connectTimeout", String.valueOf(TIMEOUT));
@@ -114,7 +114,7 @@ public class MySQLConnector extends DbConnectorInterface {
 	}
 
 	@Override
-	public List<DBMeta> getDatabases(Connection conn) throws DatahubException {
+	public List<DBMeta> getDatabases(Connection conn) throws StandardException {
 		List<DBMeta> dbs 	= new ArrayList<DBMeta>();
 		ResultSet rs 		= null;
 		try {
@@ -141,7 +141,7 @@ public class MySQLConnector extends DbConnectorInterface {
 			}
 
 		} catch (Exception e) {
-			throw new DatahubException("show databases error", e);
+			throw new StandardException("show databases error", e);
 		} finally {
 			close(rs);
 		}
@@ -151,7 +151,7 @@ public class MySQLConnector extends DbConnectorInterface {
 
 	@Override
 	public String getDDLByTable(TableMeta table, List<ColumnMeta> columns, 
-			Connection conn) throws DatahubException {
+			Connection conn) throws StandardException {
 		
 		if(table == null || StringUtils.isBlank(table.getName())){
 			return StringUtils.EMPTY;
@@ -166,7 +166,7 @@ public class MySQLConnector extends DbConnectorInterface {
 		
 		for(int i=0; i<columns.size(); i++){
 			if(StringUtils.isBlank(columns.get(i).getName())){
-				throw new DatahubException(String.format("column name can not empty [index=%s]", i));
+				throw new StandardException(String.format("column name can not empty [index=%s]", i));
 			}
 		}
 		
@@ -219,7 +219,7 @@ public class MySQLConnector extends DbConnectorInterface {
 	}
 
 	@Override
-	public String javaTypeToDbType(int javaType, ColumnMeta column) throws DatahubException {
+	public String javaTypeToDbType(int javaType, ColumnMeta column) throws StandardException {
 		String type = javaTypeToDbTypeMap.get(Integer.valueOf(javaType));
 		if( StringUtils.isBlank(type)){
 			type = javaTypeToDbTypeMap.get(Integer.valueOf(Types.LONGVARCHAR));
@@ -266,7 +266,7 @@ public class MySQLConnector extends DbConnectorInterface {
 	}
 	
 	private String mapOracleType(int javaType, ColumnMeta column)
-			throws DatahubException {
+			throws StandardException {
 		String type = javaTypeToDbTypeMap.get(Integer.valueOf(javaType));
 		String typeName = column.getTypeName();
 
@@ -371,7 +371,7 @@ public class MySQLConnector extends DbConnectorInterface {
 
 	@Override
 	public String showCreateTable(TableMeta table, 
-			Connection conn) throws DatahubException {
+			Connection conn) throws StandardException {
 		
 		if(table == null || conn == null){
 			return "";
@@ -527,11 +527,11 @@ public class MySQLConnector extends DbConnectorInterface {
 	 * 
 	 * @param cols
 	 * @param fullTableName
-	 * @exception DatahubException
+	 * @exception StandardException
 	 * @return sql
 	 */
 	@Override
-	public String getUpdateInsert(List<ColumnMeta> cols, String fullTableName)throws DatahubException {
+	public String getUpdateInsert(List<ColumnMeta> cols, String fullTableName)throws StandardException {
 		
 		String sql = "INSERT INTO %s (%s) SELECT * FROM (SELECT %s) AS %s ON DUPLICATE KEY UPDATE %s ";
 		

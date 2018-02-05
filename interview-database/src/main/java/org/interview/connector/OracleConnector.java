@@ -17,7 +17,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.interview.common.Const;
-import org.interview.exception.DatahubException;
+import org.interview.exception.StandardException;
 import org.interview.exception.NetException;
 import org.interview.exception.TooManyConnectionException;
 import org.interview.meta.ColumnMeta;
@@ -64,7 +64,7 @@ public class OracleConnector extends DbConnectorInterface {
 	
 	@Override
 	public List<TableMeta> getTables(String catalog, String schema, TableType[] types, Connection conn)
-			throws DatahubException {
+			throws StandardException {
 		List<TableMeta> list = super.getTables(catalog, schema, types, conn);
 		list.removeIf(new Predicate<TableMeta>() {
 
@@ -78,7 +78,7 @@ public class OracleConnector extends DbConnectorInterface {
 
 	@Override
 	public String queryByPage(String baseSql, long pageNo,
-			long pageSize) throws DatahubException {
+			long pageSize) throws StandardException {
 		
 		Connection conn = null;
 		try {
@@ -104,10 +104,10 @@ public class OracleConnector extends DbConnectorInterface {
 			}
 			
 			return sql;
-		} catch (DatahubException de) {
+		} catch (StandardException de) {
 			throw de;
 		} catch (Exception e) {
-			throw new DatahubException("query by page error", e);
+			throw new StandardException("query by page error", e);
 		} finally {
 			close(conn);
 		}
@@ -161,7 +161,7 @@ public class OracleConnector extends DbConnectorInterface {
 	}
 
 	@Override
-	public List<DBMeta> getDatabases(Connection conn) throws DatahubException {
+	public List<DBMeta> getDatabases(Connection conn) throws StandardException {
 		List<DBMeta> dbs 	= new ArrayList<DBMeta>();
 		ResultSet rs 		= null;
 		try {
@@ -181,7 +181,7 @@ public class OracleConnector extends DbConnectorInterface {
 			}
 
 		} catch (Exception e) {
-			throw new DatahubException("列举所有数据库异常", e);
+			throw new StandardException("列举所有数据库异常", e);
 		} finally {
 			close(rs);
 		}
@@ -238,7 +238,7 @@ public class OracleConnector extends DbConnectorInterface {
 	}
 	
 	@Override
-	public String javaTypeToDbType(int javaType, ColumnMeta column) throws DatahubException {
+	public String javaTypeToDbType(int javaType, ColumnMeta column) throws StandardException {
 		String type = javaTypeToDbTypeMap.get(Integer.valueOf(javaType));
 		if( StringUtils.isBlank(type)){
 			type = javaTypeToDbTypeMap.get(Integer.valueOf(Types.VARCHAR));
@@ -285,7 +285,7 @@ public class OracleConnector extends DbConnectorInterface {
 	}
 
 	@Override
-	public String showCreateTable(TableMeta table, Connection conn) throws DatahubException {
+	public String showCreateTable(TableMeta table, Connection conn) throws StandardException {
 		
 		if(table == null || conn == null){
 			return "";
@@ -318,10 +318,10 @@ public class OracleConnector extends DbConnectorInterface {
 				res = res.trim();
 			}
 			
-		} catch (DatahubException de) {
+		} catch (StandardException de) {
 			throw de;
 		} catch (Exception e) {
-			throw new DatahubException(String.format("show DDL error\n%s", showSql), e);
+			throw new StandardException(String.format("show DDL error\n%s", showSql), e);
 		} 
 		
 		return res;
@@ -478,12 +478,12 @@ public class OracleConnector extends DbConnectorInterface {
 	 * 
 	 * @param cols
 	 * @param fullTableName
-	 * @exception DatahubException
+	 * @exception StandardException
 	 * @return sql
 	 */
 	@Override
 	public String getUpdateInsert(List<ColumnMeta> cols, String fullTableName)
-			throws DatahubException {
+			throws StandardException {
 		
 		StringBuffer fields = new StringBuffer();
 		StringBuffer values = new StringBuffer();

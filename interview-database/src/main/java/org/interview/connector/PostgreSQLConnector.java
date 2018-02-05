@@ -17,7 +17,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.interview.common.Const;
-import org.interview.exception.DatahubException;
+import org.interview.exception.StandardException;
 import org.interview.exception.TooManyConnectionException;
 import org.interview.meta.ColumnMeta;
 import org.interview.meta.DBAccessType;
@@ -48,7 +48,7 @@ public class PostgreSQLConnector extends DbConnectorInterface {
 
 	@Override
 	public String queryByPage(String baseSql, long pageNo,
-			long pageSize) throws DatahubException {
+			long pageSize) throws StandardException {
 		if (StringUtils.isBlank(baseSql)) {
 			return null;
 		}
@@ -83,7 +83,7 @@ public class PostgreSQLConnector extends DbConnectorInterface {
 	}
 
 	@Override
-	public List<DBMeta> getDatabases(Connection conn) throws DatahubException {
+	public List<DBMeta> getDatabases(Connection conn) throws StandardException {
 		List<DBMeta> dbs = new ArrayList<DBMeta>();
 		ResultSet rs = null;
 		try {
@@ -107,7 +107,7 @@ public class PostgreSQLConnector extends DbConnectorInterface {
 			}
 
 		} catch (Exception e) {
-			throw new DatahubException("show databases error", e);
+			throw new StandardException("show databases error", e);
 		} finally {
 			close(rs);
 		}
@@ -127,7 +127,7 @@ public class PostgreSQLConnector extends DbConnectorInterface {
 
 	@Override
 	public List<TableMeta> getTables(String catalog, String schema, TableType[] types, 
-			Connection conn) throws DatahubException {
+			Connection conn) throws StandardException {
 		if(StringUtils.isNotBlank(catalog)){
 			getDbMeta().setDbName(catalog);
 		}
@@ -180,7 +180,7 @@ public class PostgreSQLConnector extends DbConnectorInterface {
 
 	@Override
 	public String javaTypeToDbType(int javaType, ColumnMeta column)
-			throws DatahubException {
+			throws StandardException {
 		String type = javaTypeToDbTypeMap.get(Integer.valueOf(javaType));
 		if( StringUtils.isBlank(type)){
 			type = javaTypeToDbTypeMap.get(Integer.valueOf(Types.VARCHAR));
@@ -217,7 +217,7 @@ public class PostgreSQLConnector extends DbConnectorInterface {
 	}
 	
 	@Override
-	public String showCreateTable(TableMeta table, Connection conn) throws DatahubException {
+	public String showCreateTable(TableMeta table, Connection conn) throws StandardException {
 		if(table == null || conn == null){
 			return "";
 		}

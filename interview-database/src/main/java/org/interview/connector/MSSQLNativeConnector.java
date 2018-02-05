@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.interview.common.Const;
-import org.interview.exception.DatahubException;
+import org.interview.exception.StandardException;
 import org.interview.meta.ColumnMeta;
 import org.interview.meta.DBAccessType;
 import org.interview.meta.DBMeta;
@@ -59,7 +59,7 @@ public class MSSQLNativeConnector extends DbConnectorInterface {
 	
 	@Override
 	public String queryByPage(String baseSql, long pageNo,
-			long pageSize) throws DatahubException {
+			long pageSize) throws StandardException {
 		// SQL server第一个字段要求不能为null, 且可排序
 		if (StringUtils.isBlank(baseSql)) {
 			return null;
@@ -96,7 +96,7 @@ public class MSSQLNativeConnector extends DbConnectorInterface {
 					|| "xml".equalsIgnoreCase(firstField.getTypeName())){
 				String err = "name=%s, type=%s\nfirst field not support types are text, ntext, image, geography, geometry, xml.";
 				err = String.format(err, firstField.getName(), firstField.getTypeName());
-				throw new DatahubException(err);
+				throw new StandardException(err);
 			}
 			String first = header.get(0).getName();
 			first = quotObject(first);
@@ -121,10 +121,10 @@ public class MSSQLNativeConnector extends DbConnectorInterface {
 			sql.append(first);
 			return sql.toString();
 			
-		} catch (DatahubException de) {
+		} catch (StandardException de) {
 			throw de;
 		} catch (Exception e) {
-			throw new DatahubException("query by page error", e);
+			throw new StandardException("query by page error", e);
 		} finally {
 			close(conn);
 		}
@@ -148,7 +148,7 @@ public class MSSQLNativeConnector extends DbConnectorInterface {
 	}
 
 	@Override
-	public List<DBMeta> getDatabases(Connection conn) throws DatahubException {
+	public List<DBMeta> getDatabases(Connection conn) throws StandardException {
 		List<DBMeta> dbs = new ArrayList<DBMeta>();
 		ResultSet rs = null;
 		try {
@@ -180,7 +180,7 @@ public class MSSQLNativeConnector extends DbConnectorInterface {
 			}
 
 		} catch (Exception e) {
-			throw new DatahubException("show databases error", e);
+			throw new StandardException("show databases error", e);
 			//throw new DatahubException("列举所有数据库异常", e);
 		} finally {
 			close(rs);
@@ -192,7 +192,7 @@ public class MSSQLNativeConnector extends DbConnectorInterface {
 
 	@Override
 	public String javaTypeToDbType(int javaType, ColumnMeta column)
-			throws DatahubException {
+			throws StandardException {
 		
 		String type = javaTypeToDbTypeMap.get(Integer.valueOf(javaType));
 		if( StringUtils.isBlank(type)){
@@ -278,7 +278,7 @@ public class MSSQLNativeConnector extends DbConnectorInterface {
 	}
 
 	@Override
-	public String showCreateTable(TableMeta table, Connection conn) throws DatahubException {
+	public String showCreateTable(TableMeta table, Connection conn) throws StandardException {
 
 		if(table == null || conn == null){
 			return "";
@@ -449,7 +449,7 @@ public class MSSQLNativeConnector extends DbConnectorInterface {
 
 		} catch (Exception e) {
 			logger.error(showSql);
-			throw new DatahubException(String.format("show DDL error\n%s", showSql), e);
+			throw new StandardException(String.format("show DDL error\n%s", showSql), e);
 			//throw new DatahubException(e, "显示建表DDL异常\n%s", showSql);
 		} finally {
 			close(rs, st);
