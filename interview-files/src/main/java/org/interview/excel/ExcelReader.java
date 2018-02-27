@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -36,10 +37,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 事件驱动模式, excel读取接口定义
- * @author PengYang
- * @date 2017-06-23
+ * @author shersfy
+ * @date 2018-02-27
  *
- * @copyright Copyright Lenovo Corporation 2017 All Rights Reserved.
+ * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
 public abstract class ExcelReader {
 	
@@ -52,11 +53,42 @@ public abstract class ExcelReader {
 	
 	/**读取每一行操作**/
 	public static final int METHOD_PROCESS 			= 1;
+	/**缓存行数计算权值**/
+	public static final int DEFAULT_BLOCK_WEIGHT 	= 5000;
 	
 	/**excel文件名  **/
 	protected String filePath;
 	/**sheet 内容处理  **/
 	protected SimpleRowHandler handler;
+	
+	/**
+	 * 根据excel文件名获取ExcelReader对象
+	 * 
+	 * @author shersfy
+	 * @date 2018-02-27
+	 * 
+	 * @param filePath 文件路径
+	 * @return ExcelReader对象
+	 * @throws StandardException 
+	 */
+	public static ExcelReader getReaderInstance(String filePath) throws StandardException {
+		if(StringUtils.isBlank(filePath)) {
+			return null;
+		}
+		
+		String ext = ExcelReader.getExcelRealType(filePath);
+		
+		if(ExcelReader.EXT_XLS.equalsIgnoreCase(ext)){
+			return new Excel2003Reader(filePath);
+		}
+		
+		if(ExcelReader.EXT_XLSX.equalsIgnoreCase(ext)){
+			return new Excel2007Reader(filePath);
+		}
+		//not support
+		throw new StandardException(String.format("not support file type *.%s", ext));
+	}
+	
 	/**
 	 * 事件驱动模式, 读取excel工作簿
 	 * 
@@ -624,6 +656,219 @@ public abstract class ExcelReader {
 			IOUtils.closeQuietly(pk);
 		}
 		return false;
+	}
+	
+	/**
+	 * 支持97-2003格式(*.xls)和2007以上格式(*xlsx)的excel, 支持大数据量, 资源消耗低
+	 * 
+	 * @author shersfy
+	 * @date 2018-02-27
+	 * 
+	 * @param outDir 输出目录
+	 * @param sheetIndexVSDataRowIndex 输出sheet索引<-->数据行索引
+	 * @param sheetIndexVSColSep 输出sheet索引<-->输出列分隔符
+	 * @param totalSize 总行数
+	 * @param deleteSrcFile 是否删除源文件
+	 * @return 转换后文本文件集合
+	 * @throws StandardException
+	 */
+	public List<File> parseBigDataToTxt(final String outDir, final Map<Integer, Integer> sheetIndexVSDataRowIndex, 
+			final Map<Integer, String> sheetIndexVSColSep, final long totalSize, boolean deleteSrcFile) throws StandardException{
+
+		File excelFile		= null;
+		List<File> txtFiles = new ArrayList<>();
+		String defaultColSep= "\t";
+		
+		try {
+			File dir = new File(outDir);
+			if(!dir.isDirectory()) {
+				dir.mkdirs();
+			}
+			
+			excelFile 	= new File(filePath);
+			// start
+			// 解析回调处理
+			this.setHandler(new SimpleRowHandler() {
+				
+				GridData table 			= new GridData();
+				List<FieldData> fields 	= null;
+				Integer curSheet 		= 0;
+				String sheetName 		= "";
+				long headerYStart		= -1;
+//				long headerYEnd			= -1;
+				int rowNum				= -1;
+				int readSize			= 0;
+				int skipSize			= 0;
+				int blockSize			= -1;
+				
+
+				@Override
+				public void startSheet(int curSheet, String sheetName) {
+					this.curSheet 	= curSheet;
+					this.sheetName 	= sheetName;
+					if(sheetIndexVSDataRowIndex!=null && !sheetIndexVSDataRowIndex.keySet().contains(curSheet)){
+						return;
+					}
+					LOGGER.info("start sheet {}", sheetName);
+				}
+				/**
+				 * 开始读行内容
+				 */
+				@Override
+				public void startRow(int rowIndex) {
+					rowNum  = rowIndex+1;
+					fields 	= new ArrayList<FieldData>();
+				}
+				
+				
+				@Override
+				public void cell(String cellReference, String formattedValue, XSSFComment comment) {
+					if(sheetIndexVSDataRowIndex!=null && !sheetIndexVSDataRowIndex.keySet().contains(curSheet)){
+						return;
+					}
+					PointData position = ExcelReader.getPosition(cellReference);
+					// 填充空单元格
+					if(headerYStart == -1){
+						headerYStart = position.getYvalue();
+					} else {
+						PointData start = new PointData(rowNum-1, headerYStart);
+						if(!fields.isEmpty()){
+							start = fields.get(fields.size()-1).getPosition();
+							
+						} else if(headerYStart < position.getYvalue()){
+							start.setYvalue(start.getYvalue()-1);
+						}
+						fields = ExcelReader.fillEmptyCell(fields, start , position);
+					}
+					
+					FieldData field 	= new FieldData();
+					//设置单元格的数据
+					field.setName(position.toString());
+					field.setPosition(position);
+					field.setValue(formattedValue);
+					fields.add(field);
+				}
+				
+				/**
+				 * 读行结束，判断是否满block，满就写入文件
+				 */
+				public void endRow(int rowIndex) {
+					if(sheetIndexVSDataRowIndex!=null && !sheetIndexVSDataRowIndex.keySet().contains(curSheet)){
+						return;
+					}
+					// 跳过指定行前的数据
+					int dataRowIndex = sheetIndexVSDataRowIndex==null?0:sheetIndexVSDataRowIndex.get(curSheet);
+					if(dataRowIndex > rowIndex){
+						skipSize++;
+						fields.clear();
+						LOGGER.info("sheet [{}] row number {}, skip it because data row number from {}", 
+								sheetName, rowNum, dataRowIndex+1);
+						return;
+					}
+					// 跳过空行
+//					if(fields.isEmpty()){
+//						skipSize++;
+//						String msg = Messages.getMessage("INFO_00256", sheetName, rowNum);
+//						appendMsg(LogLevel.INFO, msg);
+//						return;
+//					}
+					
+					readSize++;
+					RowData rowData = new RowData();
+					rowData.setFields(fields);
+					table.addRow(rowData);
+					
+					//计算缓存数据块的行数
+					if (blockSize == -1 && rowData.getFields().size() != 0) {
+						blockSize = DEFAULT_BLOCK_WEIGHT/rowData.getFields().size();
+						blockSize = blockSize == 0 ?1 :blockSize;
+					}
+					
+					// 满块，写入文件
+					if (blockSize!=-1 && readSize % blockSize == 0) {
+						writeData();
+					}
+				}
+
+				/**
+				 * 头尾处理
+				 */
+				public void headerFooter(String text, boolean isHeader,
+						String tagName) {
+				}
+
+				@Override
+				public void getRow(int sheetIndex, int rowIndex, List<FieldData> fields) {
+					if(sheetIndexVSDataRowIndex!=null && !sheetIndexVSDataRowIndex.keySet().contains(curSheet)){
+						return;
+					}
+					rowNum = rowIndex+1;
+					List<FieldData> data = new ArrayList<FieldData>();
+					data.addAll(fields);
+					this.fields = data;
+				}
+				
+				/**
+				 * 读表结束，清理block中最后残留的数据
+				 */
+				public void endSheet(int sheetIndex, String sheetName) {
+					if(sheetIndexVSDataRowIndex!=null && !sheetIndexVSDataRowIndex.keySet().contains(curSheet)){
+						return;
+					}
+					writeData();
+				}
+				
+				/**
+				 * 写数据到文件
+				 * 
+				 */
+				private void writeData(){
+					if(table.getRows().size() > 0){
+						File txtFile = null;
+						try {
+							StringBuffer name  = new StringBuffer();
+							name.append(curSheet).append(File.separatorChar);
+							name.append(sheetName).append(".txt");
+							txtFile = new File(outDir, name.toString());
+							writeToFile(txtFile, table, sheetIndexVSColSep!=null?sheetIndexVSColSep.get(curSheet):defaultColSep, true);
+							table.getRows().clear();
+							
+							if(totalSize>0) {
+								double progres = totalSize==0?100.0:(double)(readSize+skipSize)/totalSize*100;
+								LOGGER.info("sheet [{}] row number {}, wirte {} records, skip {} records, total {} records, progress={}",
+										sheetName, rowNum, readSize, skipSize, totalSize, String.format("%.2f%%", progres));
+							}
+							if(!txtFiles.contains(txtFile)) {
+								txtFiles.add(txtFile);
+							}
+						} catch (StandardException de) {
+							LOGGER.error("write data error: {}", txtFile);
+						}
+					}
+				}
+				
+			});
+			
+			// 解析sheet
+			this.process(new Integer[]{});
+
+		} catch (StandardException de) {
+			LOGGER.error(filePath);
+			throw de;
+		} catch (Exception e) {
+			LOGGER.error(filePath);
+			throw new StandardException(e, "file parse error");
+
+		} finally {
+			// 删除源文件
+			if(deleteSrcFile && FileUtils.deleteQuietly(excelFile)) {
+				LOGGER.info("delete: {}", excelFile);
+			}
+				
+		}
+
+		return txtFiles;
+
 	}
 	
 }

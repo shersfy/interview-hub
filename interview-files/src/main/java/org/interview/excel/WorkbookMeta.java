@@ -8,10 +8,10 @@ import org.interview.meta.Data;
 
 /**
  * excel工作簿信息
- * @author PengYang
- * @date 2017-06-23
+ * @author shersfy
+ * @date 2018-02-27
  *
- * @copyright Copyright Lenovo Corporation 2017 All Rights Reserved.
+ * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
 public class WorkbookMeta extends Data {
 	

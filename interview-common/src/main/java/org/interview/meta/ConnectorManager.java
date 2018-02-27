@@ -3,7 +3,7 @@ package org.interview.meta;
 /**
  * 连接器管理器接口
  * @author shersfy
- * @date 2018-02-05
+ * @date 2018-02-27
  *
  * @copyright Copyright shersfy 2018 All Rights Reserved.
  */

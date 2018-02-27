@@ -4,10 +4,10 @@ import org.apache.commons.io.FilenameUtils;
 
 /**
  * 文件元信息
- * @author PengYang
- * @date 2017-12-27
+ * @author shersfy
+ * @date 2018-02-27
  *
- * @copyright Copyright Lenovo Corporation 2017 All Rights Reserved.
+ * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
 public class FileMeta extends BaseMeta{
 	

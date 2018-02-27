@@ -2,13 +2,6 @@ package org.interview.excel;
 
 import org.interview.meta.Data;
 
-/**
- * excel sheet信息
- * @author PengYang
- * @date 2017-06-23
- *
- * @copyright Copyright Lenovo Corporation 2017 All Rights Reserved.
- */
 public class SheetMeta extends Data {
 	
 	private int index;

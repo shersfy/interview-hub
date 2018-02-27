@@ -6,10 +6,10 @@ import java.util.List;
 
 /**
  * 结构化数据文件源信息
- * @author PengYang
+ * @author shersfy
  * @date 2018-02-27
  *
- * @copyright Copyright Lenovo Corporation 2018 All Rights Reserved.
+ * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
 public class DataFileMeta extends FileMeta{
 	

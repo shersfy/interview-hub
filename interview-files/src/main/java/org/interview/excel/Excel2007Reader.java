@@ -22,10 +22,10 @@ import org.xml.sax.XMLReader;
 
 /**
  * excel 2007以上版本读取类
- * @author PengYang
- * @date 2017-06-22
+ * @author shersfy
+ * @date 2018-02-27
  *
- * @copyright Copyright Lenovo Corporation 2017 All Rights Reserved.
+ * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
 public class Excel2007Reader extends ExcelReader{
 	

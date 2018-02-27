@@ -8,15 +8,15 @@ import org.interview.meta.FieldData;
 
 /**
  * 处理excel sheet接口定义
- * @author PengYang
- * @date 2017-06-22
+ * @author shersfy
+ * @date 2018-02-27
  *
- * @copyright Copyright Lenovo Corporation 2017 All Rights Reserved.
+ * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
 public interface SimpleRowHandler extends SheetContentsHandler {
 
 	/**
-	 * sheet结束
+	 * sheet开始
 	 * 
 	 * @author PengYang
 	 * @date 2017-06-22
@@ -35,15 +35,17 @@ public interface SimpleRowHandler extends SheetContentsHandler {
 	
 	@Override
 	public void startRow(int rowInndex);
+	
 	@Override
 	public void endRow(int rowInndex);
 	
 	/**
 	 * A cell, with the given formatted value (may be null), and possibly a comment (may be null), was encountered.<br/>
-	 * Only support 2007 version excel.
+	 * Only support 2007 above version excel.
 	 */
 	@Override
 	public void cell(String cellReference, String formattedValue, XSSFComment comment);
+	
 	@Override
 	public void headerFooter(String text, boolean isHeader, String tagName);
 	

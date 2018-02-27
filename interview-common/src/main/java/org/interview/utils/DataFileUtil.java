@@ -13,12 +13,11 @@ import org.interview.meta.GridData;
 import org.interview.meta.RowData;
 
 /**
- * dump文件工具类
- * 
- * @author PengYang
- * @date 2016-12-12
+ * 结构化数据文件工具类
+ * @author shersfy
+ * @date 2018-02-27
  *
- * @copyright Copyright Lenovo Corporation 2016 All Rights Reserved.
+ * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
 public class DataFileUtil {
 
