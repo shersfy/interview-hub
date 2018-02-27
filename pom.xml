@@ -10,6 +10,7 @@
 		<module>interview-design-patterns</module>
 		<module>interview-database</module>
 		<module>interview-common</module>
+		<module>interview-files</module>
 	</modules>
 
 	<dependencyManagement>

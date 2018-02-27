@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.interview.connector.ConnectorManager;
-
-
 /**
  * 数据库元信息
  * @author shersfy
@@ -69,8 +66,6 @@ public class DBMeta extends BaseMeta{
     private long retryTimes;
 	/**重连次数**/
     private long retryTimeout;
-    /**资源管理器**/
-    private ConnectorManager manager;
     
     public DBMeta(){
     	params 		= new Properties();
@@ -187,14 +182,6 @@ public class DBMeta extends BaseMeta{
 
 	public void setCheckValid(boolean checkValid) {
 		this.checkValid = checkValid;
-	}
-
-	public ConnectorManager getManager() {
-		return manager;
-	}
-
-	public void setManager(ConnectorManager manager) {
-		this.manager = manager;
 	}
 
 	public long getRetryTimes() {

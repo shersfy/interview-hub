@@ -37,6 +37,7 @@ import org.interview.exception.StandardException;
 import org.interview.exception.NetException;
 import org.interview.exception.TooManyConnectionException;
 import org.interview.meta.ColumnMeta;
+import org.interview.meta.ConnectorManager;
 import org.interview.meta.DBAccessType;
 import org.interview.meta.DBMeta;
 import org.interview.meta.FieldData;
@@ -67,6 +68,8 @@ public abstract class DbConnectorInterface {
 	public static final int TIMEOUT = 10000;
 	protected static Logger logger  = LoggerFactory.getLogger(DbConnectorInterface.class);
 	protected DBMeta dbMeta			= null;
+	/**资源管理器**/
+    private ConnectorManager manager;
 
 	/**
 	 * 加载驱动类, 默认加载JDBC驱动
@@ -830,7 +833,6 @@ public abstract class DbConnectorInterface {
 	}
 	
 	private Connection connect(String url, Properties pro) throws Throwable{
-		ConnectorManager manager = this.dbMeta.getManager();
 		if(manager!=null && manager.getMaxConnections()<=0){
 			throw new TooManyConnectionException("max connections has been used up");
 		}
@@ -1293,8 +1295,8 @@ public abstract class DbConnectorInterface {
 			if(obj!=null){
 				try {
 					obj.close();
-					if((obj instanceof Connection) && this.dbMeta.getManager()!=null){
-						this.dbMeta.getManager().releaseConnection();
+					if((obj instanceof Connection) && manager!=null){
+						manager.releaseConnection();
 					}
 				} catch (Exception e) {
 					logger.error(e.getMessage());
@@ -1871,6 +1873,14 @@ public abstract class DbConnectorInterface {
 	 */
 	public void prepareStatementByCursor(PreparedStatement pstmt) throws SQLException{
 		// nothing
+	}
+
+	public ConnectorManager getManager() {
+		return manager;
+	}
+
+	public void setManager(ConnectorManager manager) {
+		this.manager = manager;
 	}
 
 }
