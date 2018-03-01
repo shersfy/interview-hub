@@ -1,4 +1,4 @@
-package org.interview.meta;
+package org.interview.beans;
 
 /**
  * 连接器管理器接口

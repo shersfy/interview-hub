@@ -1,4 +1,4 @@
-package org.interview.meta;
+package org.interview.beans;
 
 import java.util.Map;
 

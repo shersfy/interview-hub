@@ -1,6 +1,6 @@
 package org.interview.excel;
 
-import org.interview.meta.Data;
+import org.interview.beans.Data;
 
 public class SheetMeta extends Data {
 	

@@ -1,4 +1,4 @@
-package org.interview.meta;
+package org.interview.beans;
 
 /**
  * 数据库连接类型

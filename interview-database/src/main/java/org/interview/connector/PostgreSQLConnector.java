@@ -15,15 +15,14 @@ import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
-
+import org.interview.beans.ColumnMeta;
+import org.interview.beans.DBAccessType;
+import org.interview.beans.DBMeta;
+import org.interview.beans.TableMeta;
+import org.interview.beans.TableType;
 import org.interview.common.Const;
 import org.interview.exception.StandardException;
 import org.interview.exception.TooManyConnectionException;
-import org.interview.meta.ColumnMeta;
-import org.interview.meta.DBAccessType;
-import org.interview.meta.DBMeta;
-import org.interview.meta.TableMeta;
-import org.interview.meta.TableType;
 import org.interview.utils.FunUtil;
 
 public class PostgreSQLConnector extends DbConnectorInterface {

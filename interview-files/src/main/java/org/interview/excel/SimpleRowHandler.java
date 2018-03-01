@@ -3,8 +3,8 @@ package org.interview.excel;
 import java.util.List;
 
 import org.apache.poi.xssf.usermodel.XSSFComment;
+import org.interview.beans.FieldData;
 import org.interview.excel.SheetXMLHandler.SheetContentsHandler;
-import org.interview.meta.FieldData;
 
 /**
  * 处理excel sheet接口定义

@@ -35,9 +35,9 @@ import org.apache.poi.hssf.record.StringRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.interview.beans.FieldData;
+import org.interview.beans.PointData;
 import org.interview.exception.StandardException;
-import org.interview.meta.FieldData;
-import org.interview.meta.PointData;
 
 public class Excel2003Reader extends ExcelReader 
 	implements HSSFListener{

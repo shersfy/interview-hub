@@ -15,14 +15,13 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.interview.beans.ColumnMeta;
+import org.interview.beans.DBAccessType;
+import org.interview.beans.DBMeta;
+import org.interview.beans.GridData;
+import org.interview.beans.TableMeta;
 import org.interview.common.Const;
 import org.interview.exception.StandardException;
-import org.interview.meta.ColumnMeta;
-import org.interview.meta.DBAccessType;
-import org.interview.meta.DBMeta;
-import org.interview.meta.GridData;
-import org.interview.meta.TableMeta;
 import org.interview.utils.FunUtil;
 
 /**

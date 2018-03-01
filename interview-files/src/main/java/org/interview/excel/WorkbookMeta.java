@@ -3,7 +3,7 @@ package org.interview.excel;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.interview.meta.Data;
+import org.interview.beans.Data;
 
 
 /**

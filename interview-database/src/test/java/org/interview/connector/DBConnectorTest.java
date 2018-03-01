@@ -3,9 +3,9 @@ package org.interview.connector;
 import java.sql.Connection;
 import java.util.List;
 
-import org.interview.meta.DBMeta;
-import org.interview.meta.GridData;
-import org.interview.meta.RowData;
+import org.interview.beans.DBMeta;
+import org.interview.beans.GridData;
+import org.interview.beans.RowData;
 import org.interview.utils.AesUtil;
 
 import junit.framework.TestCase;

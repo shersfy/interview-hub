@@ -1,7 +1,7 @@
 package org.interview.excel;
 
-import org.interview.meta.Data;
-import org.interview.meta.RowData;
+import org.interview.beans.Data;
+import org.interview.beans.RowData;
 
 public class RowMeta extends Data {
 	

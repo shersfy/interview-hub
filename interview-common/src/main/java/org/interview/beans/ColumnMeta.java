@@ -1,4 +1,4 @@
-package org.interview.meta;
+package org.interview.beans;
 
 public class ColumnMeta extends BaseMeta{
 	

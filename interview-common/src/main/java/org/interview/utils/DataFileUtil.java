@@ -6,11 +6,11 @@ import java.io.OutputStream;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.interview.beans.DataFileMeta;
+import org.interview.beans.FieldData;
+import org.interview.beans.GridData;
+import org.interview.beans.RowData;
 import org.interview.exception.StandardException;
-import org.interview.meta.DataFileMeta;
-import org.interview.meta.FieldData;
-import org.interview.meta.GridData;
-import org.interview.meta.RowData;
 
 /**
  * 结构化数据文件工具类
