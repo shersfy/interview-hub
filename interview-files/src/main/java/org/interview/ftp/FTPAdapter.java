@@ -25,14 +25,14 @@ import org.interview.utils.CharsetUtil;
 import org.interview.utils.FileUtil;
 
 
-public class FTPAdaptor extends FTPClientAdaptor {
+public class FTPAdapter extends FTPClientInterface {
 	
 	private FTPClient ftp;
 	
-	public FTPAdaptor(){}
+	public FTPAdapter(){}
 	
 	@Override
-	public FTPClientAdaptor connect() throws StandardException {
+	public FTPClientInterface connect() throws StandardException {
 
 		try {
 			if(ftp==null){

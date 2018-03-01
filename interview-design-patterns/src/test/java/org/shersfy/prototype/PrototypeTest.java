@@ -2,6 +2,8 @@ package org.shersfy.prototype;
 
 import java.util.Date;
 
+import org.shersfy.prototype.Prototype;
+
 import junit.framework.TestCase;
 
 public class PrototypeTest extends TestCase {

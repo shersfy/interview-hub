@@ -3,8 +3,9 @@ package org.shersfy.prototype;
 import java.util.Date;
 
 /**
- * 原型模式<br/>
+ * 原型模式（Prototype Pattern）<br/>
  * 这种类型的设计模式属于创建型模式，它提供了一种快速创建副本对象的最佳方式。<br/>
+ * 
  * 优点：<br/>
  *  1、性能提高。<br/>
  *  2、逃避构造函数的约束。<br/>

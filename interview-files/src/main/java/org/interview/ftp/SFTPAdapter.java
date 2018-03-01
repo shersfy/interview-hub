@@ -27,16 +27,16 @@ import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 
-public class SFTPAdaptor extends FTPClientAdaptor {
+public class SFTPAdapter extends FTPClientInterface {
 	
 	private ChannelSftp chnSftp;
 	private Session session;
 	private String replyString;
 	
-	public SFTPAdaptor(){}
+	public SFTPAdapter(){}
 	
 	@Override
-	public FTPClientAdaptor connect() throws StandardException {
+	public FTPClientInterface connect() throws StandardException {
 		
 		try {
 			JSch jsch = new JSch();

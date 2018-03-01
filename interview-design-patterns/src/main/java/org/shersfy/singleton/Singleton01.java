@@ -1,7 +1,9 @@
 package org.shersfy.singleton;
 
 /**
- * 单例模式<br/>
+ * 单例模式（Singleton Pattern）<br/>
+ * 创建自己的对象，同时确保只有单个对象被创建, 这个类提供了一种访问其唯一的对象的方式，可以直接访问，不需要实例化该类的对象。<br/>
+ * 
  * 1、双检锁DCL: 双重校验锁（DCL，即 double-checked locking）<br/>
  * 是否 Lazy 初始化：是<br/>
  * 是否多线程安全：是<br/>

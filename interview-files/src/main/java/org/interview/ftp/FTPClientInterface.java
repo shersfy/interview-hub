@@ -21,9 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class FTPClientAdaptor {
+public abstract class FTPClientInterface {
 	
-	protected static Logger logger  = LoggerFactory.getLogger(FTPClientAdaptor.class);
+	protected static Logger logger  = LoggerFactory.getLogger(FTPClientInterface.class);
 	
 	private String name;
 	protected FtpMeta server;
@@ -34,15 +34,15 @@ public abstract class FTPClientAdaptor {
 	 * @param server ftp服务信息
 	 * @return ftp连接对象
 	 */
-	public static FTPClientAdaptor getInstance(FtpMeta server){
-		FTPClientAdaptor client = null;
+	public static FTPClientInterface getInstance(FtpMeta server){
+		FTPClientInterface client = null;
 		if(server == null){
 			return null;
 		}
 		if(FTPProtocolType.SFTP == server.getProtocolType()){
-			client = new SFTPAdaptor();
+			client = new SFTPAdapter();
 		} else {
-			client = new FTPAdaptor();
+			client = new FTPAdapter();
 		}
 		client.setServer(server);
 		client.setName(server.getName());
@@ -59,7 +59,7 @@ public abstract class FTPClientAdaptor {
 	 * @return ftp客户端对象
 	 * @throws StandardException
 	 */
-	public abstract FTPClientAdaptor connect() throws StandardException;
+	public abstract FTPClientInterface connect() throws StandardException;
 	/**
 	 * 退出登录
 	 * 
