@@ -2,7 +2,7 @@ package org.shersfy.prototype;
 
 import java.util.Date;
 
-import org.shersfy.prototype.Prototype;
+import org.shersfy.build.prototype.Prototype;
 
 import junit.framework.TestCase;
 

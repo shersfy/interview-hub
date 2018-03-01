@@ -1,4 +1,4 @@
-package org.shersfy.prototype;
+package org.shersfy.build.prototype;
 
 import java.util.Date;
 
@@ -37,7 +37,7 @@ public class Prototype implements Cloneable{
 	// 1. 实现Cloneable接口
 	// 2. 覆写Object.clone()方法
 	@Override
-	protected Object clone(){
+	public Object clone(){
 		Object clone = null;
 		
 		try {

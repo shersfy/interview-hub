@@ -1,4 +1,4 @@
-package org.shersfy.singleton;
+package org.shersfy.build.singleton;
 
 /**
  * 单例模式<br/>

@@ -1,9 +1,9 @@
 package org.shersfy.singleton;
 
-import org.shersfy.singleton.Singleton01;
-import org.shersfy.singleton.Singleton02;
-import org.shersfy.singleton.Singleton03;
-import org.shersfy.singleton.Singleton04;
+import org.shersfy.build.singleton.Singleton01;
+import org.shersfy.build.singleton.Singleton02;
+import org.shersfy.build.singleton.Singleton03;
+import org.shersfy.build.singleton.Singleton04;
 
 import junit.framework.TestCase;
 

@@ -1,4 +1,4 @@
-package org.shersfy.adapter;
+package org.shersfy.composite.adapter;
 
 import java.util.ArrayList;
 import java.util.List;

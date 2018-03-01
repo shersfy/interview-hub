@@ -1,4 +1,4 @@
-package org.shersfy.mvc;
+package org.shersfy.framework.mvc;
 
 /**
  *  控制层，控制器作用于模型和视图上。它控制数据流向模型对象，并在数据变化时更新视图。它使视图与模型分离开。

@@ -1,4 +1,4 @@
-package org.shersfy.mvc;
+package org.shersfy.framework.mvc;
 
 /**
  * 视图层，视图代表模型包含数据的可视化。
