@@ -1,4 +1,4 @@
-package org.interview.connector;
+package org.interview.connector.relationship;
 
 /**
  * 阿里云PostgreSQL关系型数据库连接器

@@ -1,4 +1,4 @@
-package org.interview.connector;
+package org.interview.connector.relationship;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;

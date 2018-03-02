@@ -6,6 +6,7 @@ import java.util.List;
 import org.interview.beans.DBMeta;
 import org.interview.beans.GridData;
 import org.interview.beans.RowData;
+import org.interview.connector.relationship.DbConnectorInterface;
 import org.interview.utils.AesUtil;
 
 import junit.framework.TestCase;

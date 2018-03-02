@@ -1,4 +1,4 @@
-package org.interview.connector;
+package org.interview.connector.relationship;
 
 public class MSSQLConnector extends MSSQLNativeConnector {
 	

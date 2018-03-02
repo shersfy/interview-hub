@@ -1,4 +1,4 @@
-package org.interview.connector;
+package org.interview.connector.relationship;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

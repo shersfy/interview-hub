@@ -1,4 +1,4 @@
-package org.interview.connector;
+package org.interview.connector.relationship;
 
 /**
  * 连接器管理器接口
