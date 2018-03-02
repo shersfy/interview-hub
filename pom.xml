@@ -11,6 +11,8 @@
 		<module>interview-database</module>
 		<module>interview-common</module>
 		<module>interview-files</module>
+		<module>interview-big-data</module>
+		<module>interview-webapp</module>
 	</modules>
 
 	<dependencyManagement>
