@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,14 +13,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -33,16 +29,23 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.interview.beans.FileType;
+import org.interview.beans.HdfsMeta;
+import org.interview.beans.Result;
+import org.interview.beans.ResultCode;
+import org.interview.big.data.beans.HadoopAuthTypes;
+import org.interview.common.Const;
 import org.interview.exception.StandardException;
+import org.interview.utils.CharsetUtil;
+import org.interview.utils.DateUtil;
+import org.interview.utils.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,114 +185,7 @@ public class HdfsUtil {
 		
 	}
 
-	/**
-	 * 创建Hdfs目录
-	 * @param hdfsDir 待创建目录
-	 * @param proxyUser 代理用户
-	 * @return
-	 */
-	@Deprecated
-	public static boolean createHdfsDirs(final String hdfsDir, String proxyUser, FsPermission fsp) {
-		Boolean isSuccess = Boolean.FALSE;
-		try {
-			HdfsConf userConf = HdfsConf.getInstance(proxyUser);
-			if (StringUtils.isNotBlank(proxyUser)) {
-				isSuccess = (Boolean) userConf.getUser().doAs(new PrivilegedExceptionAction<Object>() {
-					@Override
-					public Object run() throws Exception {
-						FileSystem fs = getFileSystem(userConf.getConf(), null);
-						Path path = new Path(hdfsDir);					
-						if (!fs.exists(path)) {
-							return fs.mkdirs(path, fsp);
-						}
-						return false;
-					}
-				});
-			} else {
-				FileSystem fs = getFileSystem(userConf.getConf(), null);
-				Path path = new Path(hdfsDir);
-				if (!fs.exists(path)) {
-					isSuccess = fs.mkdirs(path, fsp);
-				}
-			}
-		} catch (IOException e) {
-			isSuccess = Boolean.FALSE;
-			LOGGER.error("IOException", e);
-		} catch (InterruptedException e) {
-			isSuccess = Boolean.FALSE;
-			LOGGER.error("InterruptedException", e);
-		} catch (Exception e) {
-			isSuccess = Boolean.FALSE;
-			LOGGER.error("URISyntaxException", e);
-		}
-		return isSuccess;
-	}
 	
-	/**
-	 * 
-	 * @param srcFile
-	 * @param hdfsDir
-	 *            要写入的和dfs目的目录
-	 * @param addDate
-	 *            是否添加日期目录
-	 * @return
-	 * @author WangYinPing
-	 * @throws IOException
-	 * @throws FileNotFoundException
-	 * @throws InterruptedException
-	 * @throws URISyntaxException 
-	 * @throws StandardException 
-	 */
-	@Deprecated
-	public static boolean write(final File srcFile, String hdfsDir, boolean addDate, final boolean useTmp,
-			String appUser) throws FileNotFoundException, IOException, InterruptedException, URISyntaxException{
-		boolean isSuccess = false;
-		if (addDate) {
-			hdfsDir = hdfsDir + "/" + getFileDate(srcFile);
-		}
-		final String finalHdfsDir = hdfsDir;
-		final HdfsConf userConf = HdfsConf.getInstance(appUser);
-		if (StringUtils.isNotBlank(appUser)) {
-			isSuccess = (Boolean) userConf.getUser().doAs(new PrivilegedExceptionAction<Object>() {
-				@Override
-				public Object run() throws Exception {
-					FileSystem fs = getFileSystem(userConf.getConf(), null);
-					return writeToHdfs(srcFile, finalHdfsDir, useTmp, fs);
-				}
-			});
-		} else {
-			FileSystem fs = getFileSystem(userConf.getConf());
-			return writeToHdfs(srcFile, finalHdfsDir, useTmp, fs);
-		}
-
-		return isSuccess;
-
-	}
-	
-	@Deprecated
-	public static boolean write(final FileSystem fs, final File srcFile, String hdfsDir, boolean addDate, final boolean useTmp,
-			String appUser) throws FileNotFoundException, IOException, InterruptedException, URISyntaxException, StandardException {
-		boolean isSuccess = false;
-		if (addDate) {
-			hdfsDir = hdfsDir + "/" + getFileDate(srcFile);
-		}
-		final String finalHdfsDir = hdfsDir;
-		final HdfsConf userConf = HdfsConf.getInstance(appUser);
-		if (StringUtils.isNotBlank(appUser)) {
-			isSuccess = (Boolean) userConf.getUser().doAs(new PrivilegedExceptionAction<Object>() {
-				@Override
-				public Object run() throws Exception {
-					return writeToHdfs(srcFile, finalHdfsDir, useTmp, fs);
-				}
-			});
-		} else {
-			return writeToHdfs(srcFile, finalHdfsDir, useTmp, fs);
-		}
-
-		return isSuccess;
-
-	}
-
 	/**
 	 * 
 	 * @param srcFile
@@ -385,8 +281,7 @@ public class HdfsUtil {
 			}
 			
 			if(srcFile==null || !srcFile.isFile()){
-				throw new StandardException(Messages.getMessage("INFO_00014", srcFile));
-				//throw new StandardException(String.format("文件不存在[%s]", srcFile));
+				throw new StandardException("local file not exist: "+srcFile);
 			}
 			
 			String destPathTmpStr	= toFileName + ".tmp";
@@ -406,8 +301,7 @@ public class HdfsUtil {
 			// 覆盖
 			if(override){
 				if(!rename(fs, destPathTmpStr, toFileName, true)){
-					throw new StandardException(Messages.getMessage("INFO_00156", destPathTmpStr, toFileName));
-					//throw new StandardException(String.format("重命名文件失败%s-->%s", destPathTmpStr, toFileName));
+					throw new StandardException(String.format("rename error: %s-->%s", destPathTmpStr, toFileName));
 				}
 			}
 			// 追加
@@ -424,8 +318,7 @@ public class HdfsUtil {
 		} catch (StandardException de) {
 			throw de;
 		} catch (Exception e) {
-			throw new StandardException(Messages.getMessage("ERROR_0046", toFileName), e);
-			//throw new StandardException(e, "写hdfs异常\n%s", toFileName);
+			throw new StandardException("write to hdfs error: "+toFileName, e);
 		} finally {
 			org.apache.hadoop.io.IOUtils.closeStream(outputStreamTmp);
 			org.apache.hadoop.io.IOUtils.closeStream(outputStream);
@@ -517,8 +410,7 @@ public class HdfsUtil {
 			}
 			
 		} catch (Exception e) {
-			throw new StandardException(Messages.getMessage("ERROR_0047", meta.getName()), e);
-			//throw new StandardException(e, "hdfs连接异常\n%s", meta.getName());
+			throw new StandardException("get hdfs file system error: "+meta.getName(), e);
 		}
 		
 		return fs;
@@ -585,7 +477,7 @@ public class HdfsUtil {
 //				appUser = meta.getUserName();
 //			}
 			
-			System.setProperty(Const.HADOOP_USER_NAME, appUser);
+			System.setProperty(HdfsMeta.HADOOP_USER_NAME, appUser);
 			HadoopAuthTypes auth = HadoopAuthTypes.indexOf(meta.getAuthType());
 			switch (auth) {
 			case KERBEROS:
@@ -600,14 +492,13 @@ public class HdfsUtil {
 			}
 			
 			// 支持追加流
-			conf.set(DFSConfigKeys.DFS_SUPPORT_APPEND_KEY, "true");
+			conf.set("dfs.support.append", "true");
 			// 是否使用FileSystem.CACHE 共享的文件系统
 			// String disableCacheName = String.format("fs.%s.impl.disable.cache", scheme);
 			conf.set("fs.hdfs.impl.disable.cache", "true");
 			
 		} catch (Exception e) {
-			throw new StandardException(Messages.getMessage("ERROR_0048", meta.getName(), ""), e);
-			//throw new StandardException(e, "hdfs配置异常, %s\n%s", meta.getName(), e.getMessage());
+			throw new StandardException("hdfs configuration error: "+meta.getName(), e);
 		}
 		
 		return conf;
@@ -626,7 +517,8 @@ public class HdfsUtil {
 		}
 		
 		if(!isVaildKrb5(krb5)){
-			String err = Messages.getMessage("INFO_00028", krb5.getPath());
+			String err = String.format("krb5.conf file content is invalid, the file exist and size not more than 10M, "
+					+ "and includes content \"[libdefaults]\", \"[realms]\", \"[domain_realm]\"\\n%s", krb5.getPath());
 			throw new IOException(err);
 		}
 		System.setProperty("java.security.krb5.conf", meta.getKrb5Conf());
@@ -665,7 +557,7 @@ public class HdfsUtil {
 			if(fs!=null){
 				long used = fs.getStatus().getUsed();
 				flg = true;
-				LOGGER.info("HDFS connect successful, used {}", com.lenovo.datahub.utils.FileUtil.getLengthWithUnit(used));
+				LOGGER.info("HDFS connect successful, used {}", FileUtil.getLengthWithUnit(used));
 			}
 		} catch (StandardException de) {
 			throw de;
@@ -703,8 +595,7 @@ public class HdfsUtil {
 				LOGGER.info("HDFS connect successful, used {} bytes", used);
 			}
 		}catch (Exception e) {
-			throw new StandardException(Messages.getMessage("ERROR_0049", meta.getName()), e);
-			//throw new StandardException(e, "尝试连接异常\n%s", e.getMessage());
+			throw new StandardException("test get hdfs connection error: "+meta.getName(), e);
 		}
 		
 		return flg;
@@ -732,7 +623,7 @@ public class HdfsUtil {
 		
 		try {
 			if(fs != null){
-				home = String.format(Const.HDFS_HOME_DEFAULT, user);
+				home = String.format(HdfsMeta.HDFS_HOME_DEFAULT, user);
 				if(!fs.isDirectory(new Path(home))){
 					home =  fs.getHomeDirectory().toUri().getPath();
 				}
@@ -740,8 +631,7 @@ public class HdfsUtil {
 			}
 			
 		} catch (Exception e) {
-			throw new StandardException(Messages.getMessage("ERROR_0050"), e);
-			//throw new StandardException("获取用户home目录异常", e);
+			throw new StandardException("get the user home directory exception", e);
 		}
 		
 		return home;
@@ -783,22 +673,11 @@ public class HdfsUtil {
 			} 
 
 		} catch (Exception e) { 
-			throw new StandardException(Messages.getMessage("ERROR_0051", basePath), e);
-			//throw new StandardException(e, "列出目录异常[parent=%s]", basePath);
+			throw new StandardException(String.format("list directory exception[parent=%s]", basePath), e);
 		} 
 		return list; 
 	} 
 
-	
-	private static String getFileDate(File file) {
-		String fileDate = "";
-		Pattern pattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
-		Matcher matcher = pattern.matcher(file.getName());
-		if (matcher.find()) {
-			fileDate = matcher.group(0);
-		}
-		return fileDate;
-	}
 	
 	/**
 	 * 
@@ -1005,8 +884,7 @@ public class HdfsUtil {
 				line ++;
 			}
 		} catch (Exception e) {
-			throw new StandardException(Messages.getMessage("ERROR_0052", path), e);
-			//throw new StandardException(e, "读取hdfs文件异常\n%s", path);
+			throw new StandardException("read hdfs file error: " + path, e);
 		} finally {
 			IOUtils.closeQuietly(in);
 			IOUtils.closeQuietly(br);
@@ -1071,8 +949,7 @@ public class HdfsUtil {
 		} catch (StandardException de) {
 			throw de;
 		} catch (Exception e) {
-			throw new StandardException(Messages.getMessage("ERROR_0053", srcFileName, toFileName), e);
-			//throw new StandardException(e, "拷贝文件异常\n%s-->%s", srcFileName, toFileName);
+			throw new StandardException(String.format("copy file error: %s-->%s", srcFileName, toFileName), e);
 		} finally {
 			org.apache.hadoop.io.IOUtils.closeStream(in);
 			org.apache.hadoop.io.IOUtils.closeStream(out);
@@ -1087,7 +964,7 @@ public class HdfsUtil {
 	 * @return
 	 * @throws StandardException
 	 */
-	public synchronized static Path renameWithSuffix(FileSystem fs, Path src, Path dest, RenameType suffix)
+	public synchronized static Path renameWithSuffix(FileSystem fs, Path src, Path dest, FileUtil.RenameType suffix)
 			throws StandardException {
 		try {
 			String newname = dest.toString();
@@ -1141,7 +1018,7 @@ public class HdfsUtil {
 			
 			StringBuffer tmp = new StringBuffer(0);
 
-			fileName = com.lenovo.datahub.utils.FileUtil.concat(FilenameUtils.getFullPath(fileName), tmp.toString());
+			fileName = FileUtil.concat(FilenameUtils.getFullPath(fileName), tmp.toString());
 
 			count = count<1?1:count;
 			int cnt = 1;
@@ -1153,7 +1030,7 @@ public class HdfsUtil {
 				tmp.append(RandomStringUtils.randomNumeric(count));
 				tmp.append(StringUtils.isNotBlank(ext)?"."+ext:ext);
 				
-				Path path = new Path(com.lenovo.datahub.utils.FileUtil.concat(fullPath, tmp.toString()));
+				Path path = new Path(FileUtil.concat(fullPath, tmp.toString()));
 				if(!fs.exists(path)){
 					fileName = path.toString().replace(File.separatorChar, '/');
 					break;
@@ -1164,8 +1041,7 @@ public class HdfsUtil {
 			return fileName;
 
 		} catch (Throwable e) {
-			throw new StandardException(Messages.getMessage("ERROR_0054", fileName), e);
-			//throw new StandardException(e, "hdfs文件名添加时间戳异常\n%s", fileName);
+			throw new StandardException("hdfs file name append timestamp error: " + fileName, e);
 		}
 	}
 	
@@ -1193,7 +1069,7 @@ public class HdfsUtil {
 				tmp.append("_").append(cnt);
 				tmp.append(StringUtils.isNotBlank(ext)?"."+ext:ext);
 				
-				Path path = new Path(com.lenovo.datahub.utils.FileUtil.concat(fullPath, tmp.toString()));
+				Path path = new Path(FileUtil.concat(fullPath, tmp.toString()));
 				if(cnt == maxNumber || !fs.exists(path)){
 					fileName = path.toString().replace(File.separatorChar, '/');
 					break;
@@ -1281,7 +1157,7 @@ public class HdfsUtil {
 				default:
 					status = fs.listStatus(path);
 				}
-				Path[] paths = FileUtil.stat2Paths(status);
+				Path[] paths = org.apache.hadoop.fs.FileUtil.stat2Paths(status);
 				list = Arrays.asList(paths);
 			}
 			
@@ -1328,8 +1204,7 @@ public class HdfsUtil {
 				i++;
 			}
 		} catch (Exception e) {
-			throw new StandardException(Messages.getMessage("ERROR_0055", parent), e);
-			//throw new StandardException(e, "为目录%s创建带时间戳+随机数的文件夹异常",parent );
+			throw new StandardException("create a folder error with time stamp + random number for directory: "+parent, e);
 		}
 		
 		return path.toUri().getPath().replace(File.separatorChar, '/');
@@ -1370,8 +1245,7 @@ public class HdfsUtil {
 			output.flush();
 			
 		}  catch (Throwable e) {
-			throw new StandardException(Messages.getMessage("ERROR_0056", srcFileName, toFileName), e);
-			//throw new StandardException(e, "从Hdfs上复制文件%s到本地的%s异常",srcFileName,toFileName );
+			throw new StandardException(String.format("copy file %s from hdfs to local file %s error", srcFileName, toFileName), e);
 		} finally {
 			IOUtils.closeQuietly(input);
 			IOUtils.closeQuietly(output);
@@ -1395,7 +1269,7 @@ public class HdfsUtil {
 			return false;
 		}
 		// 大小check
-		long max = FileSizeUnit.countBytes(10, FileSizeUnit.MB);
+		long max = FileUtil.FileSizeUnit.countBytes(10, FileUtil.FileSizeUnit.MB);
 		if(krb5.length() > max){
 			return false;
 		}

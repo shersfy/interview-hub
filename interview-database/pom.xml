@@ -4,11 +4,10 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>interview-hub-parent</groupId>
+		<groupId>org.shersfy.interview</groupId>
 		<artifactId>interview-hub-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>interview-database</groupId>
 	<artifactId>interview-database</artifactId>
 	<name>interview-database</name>
 	<url>http://maven.apache.org</url>
@@ -20,27 +19,27 @@
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
 				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>commons-io</groupId>
-				<artifactId>commons-io</artifactId>
-			</dependency>
-			<dependency>
-				<groupId>commons-lang</groupId>
-				<artifactId>commons-lang</artifactId>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-			</dependency>
-			<dependency>
-				<groupId>com.alibaba</groupId>
-				<artifactId>fastjson</artifactId>
-			</dependency>
+		</dependency>
 		<dependency>
-			<groupId>interview-common</groupId>
+			<groupId>org.shersfy.interview</groupId>
 			<artifactId>interview-common</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
 		</dependency>
 		<!-- JDBC start -->
 		<dependency>

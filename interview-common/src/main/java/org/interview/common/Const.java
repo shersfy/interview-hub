@@ -2,7 +2,6 @@ package org.interview.common;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.alibaba.fastjson.JSONObject;
 
 /**
  * 常量
@@ -38,85 +37,6 @@ public class Const {
 	public static final String yyyyMMddHHmmss 	= "yyyy/MM/dd HH:mm:ss";
 	/**时间统一格式:HH:mm:ss**/
 	public static final String HHmmss 			= "HH:mm:ss";
-	
-	/**Hadoop认证类型**/
-	public static enum HadoopAuthTypes{
-		SIMPLE("simple"),
-		KERBEROS("kerberos"),
-		SENTRY("sentry");
-		
-		private JSONObject json;
-		private String alias;
-		
-		HadoopAuthTypes(String alias){
-			this.alias = alias;
-			this.json = new JSONObject();
-		}
-		
-		public static HadoopAuthTypes indexOf(int index){
-			switch (index) {
-			case 1:
-				return SIMPLE;
-			case 2:
-				return KERBEROS;
-			case 3:
-				return SENTRY;
-			default:
-				return SIMPLE;
-			}
-		}
-		
-		public String alias() {
-			return alias;
-		}
-		
-		public int index(){
-			return this.ordinal()+1;
-		}
-		
-		@Override
-		public String toString() {
-			json.put("index", this.index());
-			json.put("alias", this.alias);
-			json.put("name", this.name());
-			return json.toJSONString();
-		}
-		
-	}
-	
-	/**Hive表存储格式类型**/
-	public static enum HiveTableFormat {
-		
-		TEXT,
-		ORC,
-		PARQUET,
-		RCFILE,
-		SEQUENCEFILE;
-		
-		public static HiveTableFormat indexOf(Integer index) {
-			if (index == null) {
-				return TEXT;
-			}
-			switch (index) {
-			case 0:
-				return TEXT;
-			case 1:
-				return ORC;
-			case 2:
-				return PARQUET;
-			case 3:
-				return RCFILE;
-			case 4:
-				return SEQUENCEFILE;
-			default:
-				return TEXT;
-			}
-		}
-		
-		public int index() {
-			return this.ordinal();
-		}
-	}
 	
 	/**
 	 * 从excel获取单元格日期时间格式解析, 统一日期时间格式<br/>

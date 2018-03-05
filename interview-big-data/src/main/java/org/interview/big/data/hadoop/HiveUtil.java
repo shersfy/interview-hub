@@ -1,13 +1,7 @@
 package org.interview.big.data.hadoop;
 
-import i18n.Messages;
-
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.security.PrivilegedExceptionAction;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,92 +13,24 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.interview.beans.TableMeta;
+import org.interview.big.data.beans.HiveTableFormat;
+import org.interview.big.data.beans.Partition;
+import org.interview.common.Const;
+import org.interview.connector.relationship.DbConnectorInterface;
+import org.interview.exception.StandardException;
+import org.interview.utils.DateUtil;
+import org.interview.utils.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.lenovo.datahub.client.conf.Partition;
-import com.lenovo.datahub.common.Const;
-import com.lenovo.datahub.common.Const.HiveTableFormat;
-import com.lenovo.datahub.db.DbConnectorInterface;
-import com.lenovo.datahub.exception.DatahubException;
-import com.lenovo.datahub.meta.DBMeta;
-import com.lenovo.datahub.meta.TableMeta;
-import com.lenovo.datahub.step.params.HiveOutputParam;
-import com.lenovo.datahub.utils.DateUtil;
-import com.lenovo.datahub.utils.FileUtil;
 
-/**
- * @author yuehan1
- * @date 2016年5月16日
- */
 public class HiveUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(HiveUtil.class);
 
-	/**
-	 * 加载hdfs文件到hive
-	 * 
-	 * @param hdfsFile hdfs文件全路径
-	 * @param tableName hive表名，格式: hiveDb.hiveTable
-	 * @param patition 分区
-	 * @param overrite 是否覆盖
-	 * @param appName 代理用户
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 * @throws SQLException
-	 * @throws InterruptedException
-	 */
-	public static void loadToHive(String hdfsFile, DBMeta meta, String tableName, String patition, boolean overrite, String appName)
-			throws FileNotFoundException, IOException, SQLException, InterruptedException {
-		StringBuilder sqlBuffer = new StringBuilder();
-		sqlBuffer.append("LOAD DATA INPATH ").append("'").append(hdfsFile).append("'");
-		if (overrite) {
-			sqlBuffer.append(" OVERWRITE ");
-		}
-		sqlBuffer.append("INTO TABLE ").append(tableName);
-		if (StringUtils.isNotBlank(patition)) {
-			sqlBuffer.append(" PARTITION(").append(patition).append(")");
-		}
-		DbConnectorInterface connector = null;
-		Connection connection 		   = null;
-		Statement statement			   = null;
-		try {
-			connector  = DbConnectorInterface.getInstance(meta);
-			connection = connector.connection();
-			statement  = connection.createStatement();
-			final Statement stmt = statement;
-			final String hiveSQL = sqlBuffer.toString().replace(File.separatorChar, '/');
-			long start = System.currentTimeMillis();
-			String timeStr = DateUtil.format(new Date());
-			LOGGER.info("start execute sql=" + hiveSQL + " at " + timeStr);
-			HdfsConf userConf = HdfsConf.getInstance(appName);
-			if (StringUtils.isNotBlank(appName)) {
-				userConf.getUser().doAs(new PrivilegedExceptionAction<Object>() {
-					@Override
-					public Object run() throws SQLException {
-						return stmt.execute(hiveSQL);
-					}
-				});
-			} else {
-				statement.execute(hiveSQL);
-			}
-			timeStr = DateUtil.format(new Date());
-			long spend = (System.currentTimeMillis() - start)/1000;
-			StringBuilder endSb = new StringBuilder();
-			endSb.append("end execute sql=").append(hiveSQL).append(" at ");
-			endSb.append(timeStr).append(" spend=").append(spend).append(" seconds");
-			LOGGER.info(endSb.toString());
-		} catch(DatahubException e) {
-			LOGGER.error("", e);
-		} finally {
-			if(connector!=null){
-				connector.close(statement, connection);
-			}
-		}
-	}
-	
 	/**
 	 * 加载hdfs文件到hive表, 加载成功返回true, 失败返回false
 	 * 
@@ -128,27 +54,22 @@ public class HiveUtil {
 			
 			if(hiveConn == null){
 				LOGGER.error("Hive Connector is null.");
-				//LOGGER.error("参数HiveMeta为NUll");
 				return false;
 			}
 			if(hiveTable == null || StringUtils.isBlank(hiveTable.getName())){
-				LOGGER.error(Messages.getMessage("INFO_00158"));
-				//LOGGER.error("参数hive表空");
+				LOGGER.error("table name cannot empty");
 				return false;
 			}
 			if(StringUtils.isBlank(hdfsFile)){
-				LOGGER.error(Messages.getMessage("INFO_00159"));
-				//LOGGER.error("参数hdfs文件为空");
+				LOGGER.error("hdfs file connot empty");
 				return false;
 			}
 			if(hiveConn.getDbMeta().getBundledHdfs() == null){
-				LOGGER.error(Messages.getMessage("INFO_00160"));
-				//LOGGER.error("参数HiveMeta绑定的hdfs连接为NULL");
+				LOGGER.error("Bundled HdfsMeta connot null");
 				return false;
 			}
 			if(!HdfsUtil.testConn(hiveConn.getDbMeta().getBundledHdfs())){
-				LOGGER.error(Messages.getMessage("INFO_00161"));
-				//LOGGER.error("hdfs连接权限验证失败");
+				LOGGER.error("the permission of hdfs connection failed");
 				return false;
 			}
 			
@@ -174,7 +95,7 @@ public class HiveUtil {
 			LOGGER.info("End   execute sql={} at {}, spend={} seconds.", hiveSQL, DateUtil.format(new Date()), spend);
 			
 			res = true;
-		} catch (DatahubException de){
+		} catch (StandardException de){
 			LOGGER.error(de.getMessage(), de);
 		} catch (Exception e){
 			LOGGER.error("", e);
@@ -262,28 +183,6 @@ public class HiveUtil {
 			}
 		}
 		return sb.toString();
-	}
-	
-	public static String createTempTableSql(String oldSql, HiveOutputParam param, TableMeta tempMeta) {
-		String newSql = oldSql.replace(gerentFullName1(param.getTable()), gerentFullName1(tempMeta));
-		LOGGER.info(newSql);
-		newSql = newSql.replace(gerentFullName(param.getTable()), gerentFullName(tempMeta));
-		LOGGER.info(oldSql);
-		newSql = newSql.replace(param.getConnector().getFullTableName(param.getTable()), param.getConnector().getFullTableName(tempMeta));
-		int index = newSql.indexOf("ROW FORMAT ");
-		int cindex = newSql.indexOf("CLUSTERED BY");
-		int length = cindex != -1 && cindex < index ? cindex : index; 
-		if (length != -1) {
-			newSql = newSql.substring(0, length-1);
-		}
-		newSql = newSql+" ROW FORMAT DELIMITED FIELDS TERMINATED BY '%s'";
-		if(tempMeta.getColumnSep() == null){
-			newSql = String.format(newSql, StringEscapeUtils.escapeJava(Const.COLUMN_SEP));
-		}
-		else{
-			newSql = String.format(newSql, StringEscapeUtils.escapeJava(tempMeta.getColumnSep()));
-		}
-		return newSql;
 	}
 	
 	/**
@@ -543,13 +442,13 @@ public class HiveUtil {
 		if(tableType == null){
 			return sp;
 		}
-		if (tableType == HiveTableFormat.text) {
+		if (tableType == HiveTableFormat.TEXT) {
 			return String.format("\nROW FORMAT DELIMITED  FIELDS TERMINATED BY '%s'", sp);
-		} else if (tableType == HiveTableFormat.orc) {
+		} else if (tableType == HiveTableFormat.ORC) {
 			return "\nSTORED AS ORC";
-		} else if (tableType == HiveTableFormat.parquet) {
+		} else if (tableType == HiveTableFormat.PARQUET) {
 			return "\nSTORED AS PARQUET";
-		} else if (tableType == HiveTableFormat.rcfile) {
+		} else if (tableType == HiveTableFormat.RCFILE) {
 			return "\nSTORED AS RCFILE";
 		} else {
 			return "\nSTORED AS SEQUENCEFILE";
@@ -571,15 +470,15 @@ public class HiveUtil {
 			return null;
 		}
 		if (ddl.contains("SequenceFileInputFormat")||ddl.contains("STORED AS SEQUENCEFILE")) {
-			return HiveTableFormat.sequencefile;
+			return HiveTableFormat.SEQUENCEFILE;
 		} else if (ddl.contains("OrcInputFormat")||ddl.contains("STORED AS ORC")) {
-			return HiveTableFormat.orc;
+			return HiveTableFormat.ORC;
 		} else if (ddl.contains("MapredParquetInputFormat")||ddl.contains("STORED AS PARQUET")) {
-			return HiveTableFormat.parquet;
+			return HiveTableFormat.PARQUET;
 		} else if (ddl.contains("RCFileInputFormat")||ddl.contains("STORED AS RCFILE")) {
-			return HiveTableFormat.rcfile;
+			return HiveTableFormat.RCFILE;
 		} else {
-			return HiveTableFormat.text;
+			return HiveTableFormat.TEXT;
 		}
 		
 	}

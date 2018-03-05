@@ -10,7 +10,10 @@ import org.apache.commons.lang.StringUtils;
  * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
 public class HdfsMeta extends BaseMeta{
-	
+	/**HDFS环境变量**/
+	public static final String HADOOP_USER_NAME		= "HADOOP_USER_NAME";
+	/**hdfs默认用户访问根目录/user/%s**/
+	public static final String HDFS_HOME_DEFAULT 	= "/user/%s";
 	/** 认证类型 **/
 	private int authType;
 	/** 连接url **/

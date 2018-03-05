@@ -2,12 +2,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-  	<groupId>interview-hub-parent</groupId>
+  	<groupId>org.shersfy.interview</groupId>
   	<artifactId>interview-hub-parent</artifactId>
   	<version>0.0.1-SNAPSHOT</version>
   </parent>
   
-  <groupId>interview-webapp</groupId>
   <artifactId>interview-webapp</artifactId>
   <packaging>war</packaging>
   <name>interview-webapp Maven Webapp</name>
@@ -20,7 +19,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>interview-common</groupId>
+    	<groupId>org.shersfy.interview</groupId>
     	<artifactId>interview-common</artifactId>
     	<version>${project.version}</version>
     </dependency>

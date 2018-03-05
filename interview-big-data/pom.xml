@@ -4,18 +4,23 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>interview-hub-parent</groupId>
+		<groupId>org.shersfy.interview</groupId>
 		<artifactId>interview-hub-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>interview-big-data</groupId>
 	<artifactId>interview-big-data</artifactId>
 	<name>interview-big-data</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<hadoop.version>3.0.0</hadoop.version>
+		<hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>cloudera</id>
+			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -23,19 +28,44 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>interview-common</groupId>
+			<groupId>org.shersfy.interview</groupId>
 			<artifactId>interview-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!-- <dependency>
+		<dependency>
+			<groupId>org.shersfy.interview</groupId>
+			<artifactId>interview-database</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
 			<version>${hadoop.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>jdk.tools</groupId>
+					<artifactId>jdk.tools</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jasper-compiler</artifactId>
+					<groupId>tomcat</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jasper-runtime</artifactId>
+					<groupId>tomcat</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-hdfs</artifactId>
 			<version>${hadoop.version}</version>
-		</dependency> -->
+			<exclusions>
+				<exclusion>
+					<groupId>jdk.tools</groupId>
+					<artifactId>jdk.tools</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 </project>
