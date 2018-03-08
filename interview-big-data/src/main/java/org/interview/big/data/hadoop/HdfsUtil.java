@@ -14,10 +14,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -35,7 +32,9 @@ import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.interview.beans.FileMeta;
 import org.interview.beans.FileType;
 import org.interview.beans.HdfsMeta;
 import org.interview.beans.Result;
@@ -46,16 +45,14 @@ import org.interview.exception.StandardException;
 import org.interview.utils.CharsetUtil;
 import org.interview.utils.DateUtil;
 import org.interview.utils.FileUtil;
+import org.interview.utils.FileUtil.FileSizeUnit;
+import org.interview.utils.FileUtil.RenameType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class HdfsUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(HdfsUtil.class);
-	
-	/**HDFS目录结构缓存**/
-	public static Map<String, List<Path>> HDFS_PATH_LIST = new HashMap<String, List<Path>>();
 	
 	/**
 	 * 创建hdfs目录
@@ -185,7 +182,7 @@ public class HdfsUtil {
 		
 	}
 
-	
+
 	/**
 	 * 
 	 * @param srcFile
@@ -378,6 +375,10 @@ public class HdfsUtil {
 			switch (auth) {
 			case SIMPLE:
 			case SENTRY:
+				if(StringUtils.isNotBlank(meta.getUrl())){
+					fs = FileSystem.get(new URI(meta.getUrl()), conf, meta.getAppUser());
+					break;
+				}
 				fs = getFileSystem(conf);
 				fs = FileSystem.get(fs.getUri(), fs.getConf(), meta.getAppUser());
 				break;
@@ -492,7 +493,7 @@ public class HdfsUtil {
 			}
 			
 			// 支持追加流
-			conf.set("dfs.support.append", "true");
+			conf.set(DFSConfigKeys.DFS_SUPPORT_APPEND_KEY, "true");
 			// 是否使用FileSystem.CACHE 共享的文件系统
 			// String disableCacheName = String.format("fs.%s.impl.disable.cache", scheme);
 			conf.set("fs.hdfs.impl.disable.cache", "true");
@@ -557,7 +558,8 @@ public class HdfsUtil {
 			if(fs!=null){
 				long used = fs.getStatus().getUsed();
 				flg = true;
-				LOGGER.info("HDFS connect successful, used {}", FileUtil.getLengthWithUnit(used));
+				LOGGER.info("HDFS {} connect successful, used {}", meta.getUrl()==null?"":meta.getUrl(), 
+						FileUtil.getLengthWithUnit(used));
 			}
 		} catch (StandardException de) {
 			throw de;
@@ -569,37 +571,6 @@ public class HdfsUtil {
 		return flg;
 	}
 	
-	/**
-	 * URL验证hdfs连接
-	 * 
-	 * @author PengYang
-	 * @date 2017-06-27
-	 * 
-	 * @param meta
-	 * @return
-	 * @throws StandardException
-	 */
-	public static boolean testConnByUrl(HdfsMeta meta) throws StandardException{
-		boolean flg = false;
-		try {
-			Configuration conf = new Configuration(false);
-			// 重连次数
-			conf.set("ipc.client.connect.max.retries.on.timeouts", "2");
-			// 每次超时
-			conf.set("ipc.client.connect.timeout", "5000");
-			
-			FileSystem fs = FileSystem.get(new URI(meta.getUrl()), conf, meta.getUserName());
-			if(fs!=null){
-				long used = fs.getStatus().getUsed();
-				flg = true;
-				LOGGER.info("HDFS connect successful, used {} bytes", used);
-			}
-		}catch (Exception e) {
-			throw new StandardException("test get hdfs connection error: "+meta.getName(), e);
-		}
-		
-		return flg;
-	}
 	
 	/**
 	 * 获取用户根目录
@@ -678,7 +649,6 @@ public class HdfsUtil {
 		return list; 
 	} 
 
-	
 	/**
 	 * 
 	 * @param writeDir
@@ -964,7 +934,7 @@ public class HdfsUtil {
 	 * @return
 	 * @throws StandardException
 	 */
-	public synchronized static Path renameWithSuffix(FileSystem fs, Path src, Path dest, FileUtil.RenameType suffix)
+	public synchronized static Path renameWithSuffix(FileSystem fs, Path src, Path dest, RenameType suffix)
 			throws StandardException {
 		try {
 			String newname = dest.toString();
@@ -1104,9 +1074,9 @@ public class HdfsUtil {
 	 * @return
 	 * @throws StandardException
 	 */
-	public static List<Path> listPath(FileSystem fs, String basePath, FileType type) throws StandardException{
+	public static List<FileMeta> listPath(FileSystem fs, String basePath, FileType type) throws StandardException{
 		
-		List<Path> list = new ArrayList<Path>();
+		List<FileMeta> list = new ArrayList<FileMeta>();
 		try {
 			if(fs == null){
 				return list;
@@ -1121,6 +1091,30 @@ public class HdfsUtil {
 				}
 				
 				path = new Path(basePath);
+				if(!fs.exists(path)){
+					throw new StandardException("no such file or directory "+path);
+				}
+				FileStatus baseSt = fs.getFileStatus(path);
+				if(type == FileType.Directory && !baseSt.isDirectory()){
+					throw new StandardException("no such directory "+path);
+				}
+				
+				if(type == FileType.File && baseSt.isFile()){
+					FileMeta file = new FileMeta(baseSt.getPath().toUri().getPath(), baseSt.getLen());
+					file.setFile(type == FileType.File);
+					file.setDirectory(type == FileType.Directory);
+					if(type == FileType.All){
+						file.setFile(fs.isFile(baseSt.getPath()));
+						file.setDirectory(!file.isFile());
+					}
+					file.setOwner(baseSt.getOwner());
+					file.setGroup(baseSt.getGroup());
+					file.setPermission(baseSt.getPermission().toString());
+					
+					list.add(file);
+					return list;
+				}
+				
 				FileStatus[] status = null;
 				switch(type){
 				case File:
@@ -1157,8 +1151,20 @@ public class HdfsUtil {
 				default:
 					status = fs.listStatus(path);
 				}
-				Path[] paths = org.apache.hadoop.fs.FileUtil.stat2Paths(status);
-				list = Arrays.asList(paths);
+				
+				for(FileStatus st:status){
+					FileMeta file = new FileMeta(st.getPath().toUri().getPath(), st.getLen());
+					file.setFile(type == FileType.File);
+					file.setDirectory(type == FileType.Directory);
+					if(type == FileType.All){
+						file.setFile(fs.isFile(st.getPath()));
+						file.setDirectory(!file.isFile());
+					}
+					file.setOwner(st.getOwner());
+					file.setGroup(st.getGroup());
+					file.setPermission(st.getPermission().toString());
+					list.add(file);
+				}
 			}
 			
 		} catch (Exception e) {
@@ -1269,7 +1275,7 @@ public class HdfsUtil {
 			return false;
 		}
 		// 大小check
-		long max = FileUtil.FileSizeUnit.countBytes(10, FileUtil.FileSizeUnit.MB);
+		long max = FileSizeUnit.countBytes(10, FileSizeUnit.MB);
 		if(krb5.length() > max){
 			return false;
 		}

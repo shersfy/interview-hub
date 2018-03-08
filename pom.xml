@@ -12,6 +12,7 @@
 		<module>interview-common</module>
 		<module>interview-files</module>
 		<module>interview-big-data</module>
+		<module>interview-cluster</module>
 		<module>interview-webapp</module>
 	</modules>
 

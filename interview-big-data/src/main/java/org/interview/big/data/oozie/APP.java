@@ -1,10 +1,10 @@
-package org.interview.big.data.kafka;
+package org.interview.big.data.oozie;
 
 /**
  * Hello world!
  *
  */
-public class App 
+public class APP 
 {
     public static void main( String[] args )
     {

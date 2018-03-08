@@ -27,6 +27,13 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
+/**
+ * hive实现了jdbc4接口，使用标准jdbc可执行某些操作，目前hive不支持事务
+ * @author shersfy
+ * @date 2018-03-05
+ *
+ * @copyright Copyright shersfy 2018 All Rights Reserved.
+ */
 public class HiveUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(HiveUtil.class);
