@@ -1,6 +1,8 @@
 package org.interview.cluster;
 
-import org.interview.action.DeleteFileAction;
+import org.interview.jgroups.action.DeleteFileAction;
+import org.interview.jgroups.cluster.ClusterMessage;
+import org.interview.jgroups.cluster.ClusterServer;
 import org.junit.Test;
 
 

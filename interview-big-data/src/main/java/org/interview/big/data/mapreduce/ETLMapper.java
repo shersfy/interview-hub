@@ -11,9 +11,9 @@ import java.sql.ResultSet;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.interview.cluster.ClusterMessage;
-import org.interview.cluster.ClusterServer;
 import org.interview.connector.relationship.DbConnectorInterface;
+import org.interview.jgroups.cluster.ClusterMessage;
+import org.interview.jgroups.cluster.ClusterServer;
 import org.interview.utils.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

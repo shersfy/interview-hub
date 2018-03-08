@@ -1,4 +1,4 @@
-Java常用设计模式
+# Java常用设计模式
 1. 单例模式(Singleton Pattern);
 2. 原型模式(Prototype Pattern);
 3. 适配器模式(Adapter Pattern);

@@ -1,4 +1,4 @@
-package org.interview.cluster;
+package org.interview.jgroups.cluster;
 
 public interface ClusterListener {
 	

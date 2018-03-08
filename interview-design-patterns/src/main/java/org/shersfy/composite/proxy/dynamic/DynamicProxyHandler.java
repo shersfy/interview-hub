@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.shersfy.composite.proxy.MainProxy;
+import org.shersfy.composite.proxy.APP;
 import org.shersfy.composite.proxy.IServer;
 import org.shersfy.composite.proxy.USServer;
 
@@ -42,7 +42,7 @@ public class DynamicProxyHandler implements InvocationHandler, IServer{
 		// 使用动态代理
 		// 这句话执行后返回一个Proxy对象，该对象是通过java反射机制动态生成一个已实现接口IServer的类的实例。
 		// 并且重写了接口里面的方法（也就是说代理类与被代理类有相同的接口）
-		IServer proxy = (IServer) Proxy.newProxyInstance(MainProxy.class.getClassLoader(), 
+		IServer proxy = (IServer) Proxy.newProxyInstance(APP.class.getClassLoader(), 
 				new Class[] {IServer.class}, 
 				this);
 		return proxy.accessResource();

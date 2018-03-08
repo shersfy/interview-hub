@@ -1,6 +1,6 @@
-package org.interview.main;
+package org.interview.jgroups.main;
 
-import org.interview.cluster.ClusterServer;
+import org.interview.jgroups.cluster.ClusterServer;
 
 public class APP {
 

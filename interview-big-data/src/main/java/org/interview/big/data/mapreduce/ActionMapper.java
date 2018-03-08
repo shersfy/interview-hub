@@ -1,7 +1,7 @@
 package org.interview.big.data.mapreduce;
 
 import org.apache.commons.lang.StringUtils;
-import org.interview.action.Action;
+import org.interview.jgroups.action.Action;
 import org.interview.utils.HostUtil;
 
 public class ActionMapper extends Action {

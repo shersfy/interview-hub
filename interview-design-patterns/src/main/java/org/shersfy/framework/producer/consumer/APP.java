@@ -34,7 +34,7 @@ import org.apache.commons.lang.math.RandomUtils;
  *
  * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
-public class MainPC {
+public class APP {
 	
 	public static void main(String[] args) throws InterruptedException {
 		

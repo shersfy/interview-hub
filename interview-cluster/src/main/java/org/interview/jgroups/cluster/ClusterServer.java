@@ -1,4 +1,4 @@
-package org.interview.cluster;
+package org.interview.jgroups.cluster;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -11,7 +11,7 @@ import java.util.List;
 
 
 import org.apache.commons.lang.StringUtils;
-import org.interview.action.Action;
+import org.interview.jgroups.action.Action;
 import org.interview.utils.HostUtil;
 import org.jgroups.Address;
 import org.jgroups.JChannel;

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.interview.action.Action;
+import org.interview.jgroups.action.Action;
 import org.interview.utils.HostUtil;
 
 public class ActionReducer extends Action {

@@ -5,9 +5,9 @@ import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 import org.interview.beans.DBMeta;
-import org.interview.cluster.ClusterServer;
-import org.interview.cluster.InitJgroups;
 import org.interview.exception.StandardException;
+import org.interview.jgroups.cluster.ClusterServer;
+import org.interview.jgroups.cluster.InitJgroups;
 import org.interview.utils.AesUtil;
 
 

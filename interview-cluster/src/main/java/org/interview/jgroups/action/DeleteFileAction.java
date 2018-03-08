@@ -1,4 +1,4 @@
-package org.interview.action;
+package org.interview.jgroups.action;
 
 import java.io.File;
 import java.io.Serializable;

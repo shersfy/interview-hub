@@ -13,7 +13,8 @@
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
+		<hadoop.version>2.6.0-cdh5.14.0</hadoop.version>
+		<sqoop.version>1.99.5-cdh5.14.0</sqoop.version>
 		<kafka.version>1.0.0</kafka.version>
 	</properties>
 	<repositories>
@@ -122,6 +123,11 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
 			<version>${hadoop.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.sqoop</groupId>
+		    <artifactId>sqoop-client</artifactId>
+		    <version>${sqoop.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.kafka</groupId>

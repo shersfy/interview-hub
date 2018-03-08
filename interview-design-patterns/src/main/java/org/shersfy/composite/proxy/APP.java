@@ -17,7 +17,7 @@ import org.shersfy.composite.proxy.dynamic.DynamicProxyHandler;
  *
  * @copyright Copyright shersfy 2018 All Rights Reserved.
  */
-public class MainProxy {
+public class APP {
 
 	public static void main(String[] args) {
 		System.out.println("========直接访问美国服务器上的资源, 未授权无法访问==============");

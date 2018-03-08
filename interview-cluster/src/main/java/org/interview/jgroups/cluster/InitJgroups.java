@@ -1,4 +1,4 @@
-package org.interview.cluster;
+package org.interview.jgroups.cluster;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -23,7 +23,7 @@ public class InitJgroups {
 	 * @author shersfy
 	 * @date 2018-03-06
 	 * 
-	 * @param jgroupsUseDefault 是否使用默认配置，true不修改配置，false修改配置
+	 * @param jgroupsConf jgroups配置文件路径，相对路径，为空使用默认配置
 	 * @param nodes 集群节点IP，逗号分隔
 	 * @param jgroupsPort jgroup端口号
 	 */
