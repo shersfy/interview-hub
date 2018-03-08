@@ -3,6 +3,7 @@ package org.interview.connector.relationship;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -12,8 +13,11 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,6 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.interview.beans.ColumnMeta;
 import org.interview.beans.ConnectorManager;
 import org.interview.beans.DBAccessType;
@@ -47,6 +52,7 @@ import org.interview.beans.TableType;
 import org.interview.common.Const;
 import org.interview.exception.StandardException;
 import org.interview.exception.NetException;
+import org.interview.exception.NotSupportedException;
 import org.interview.exception.TooManyConnectionException;
 import org.interview.utils.AesUtil;
 import org.interview.utils.DateUtil;
@@ -471,7 +477,7 @@ public abstract class DbConnectorInterface {
 	 * @param cutPoints 切分点
 	 * @return 分块条件
 	 */
-	public List<TablePartitions> getBlocks(ColumnMeta partColumn, List<FieldData> cutPoints){
+	public List<TablePartitions> countPartitionWheres(ColumnMeta partColumn, List<FieldData> cutPoints){
 		List<TablePartitions> blocks = new ArrayList<>();
 		if(partColumn == null || cutPoints == null){
 			return blocks;
@@ -1836,6 +1842,382 @@ public abstract class DbConnectorInterface {
 		meta.setParams(params);
 		
 		return meta;
+	}
+	
+	/**
+	 * 计算分块数量, 分块数为2的倍数
+	 * 
+	 * @author shersfy
+	 * @date 2018-03-08
+	 * 
+	 * @param totalSize 总记录数
+	 * @param blockMinSize 最小分块记录数
+	 * @param blockMaxCnt 最大块数
+	 * @return 分块数
+	 */
+	public static int countPartitionBlockCnt(long totalSize, long blockMinSize, int blockMaxCnt) {
+		int blockSize = 1;
+		if(totalSize<=blockMinSize){
+			return 1;
+		}
+
+		long size = totalSize%blockMinSize==0?totalSize/blockMinSize:totalSize/blockMinSize+1;
+		int max   = blockMaxCnt;
+		while(max>0){
+			if(size/max>=1){
+				blockSize = max;
+				break;
+			}
+			max = max/2;
+		}
+		return blockSize;
+	}
+	
+	/**
+	 * 计算分块
+	 * 
+	 * @param conn 数据库连接
+	 * @param table 数据表
+	 * @param where where条件
+	 * @param totalSize 满足条件的数量
+	 * @param blockCnt 分块块数
+	 * @return 返回分块对象
+	 * @throws StandardException 其它异常
+	 * @throws NotSupportedException 表没有支持排序字段异常
+	 */
+	public List<TablePartitions> countPartitions(Connection conn, TableMeta table, String where, 
+			long totalSize, int blockCnt) throws StandardException, NotSupportedException{
+
+		List<TablePartitions> partitions = null;
+
+		try {
+
+			ColumnMeta partColumn = null;
+
+			//表名
+			String fullName = this.getFullTableName(table);
+			if(!this.exist(table, conn)){
+				throw new StandardException(String.format("In database connector {}, table {} not exist", dbMeta.getName(), fullName));
+			}
+			//1. 获取分区字段
+			//如果有主键，则把主键当做分区字段
+			List<ColumnMeta> cols = this.getColumns(table, conn);
+			for(ColumnMeta meta : cols){
+				if(meta.isPk()){
+					partColumn = meta;
+					break;
+				}
+			}
+
+			//不存在主键，则把可排序的字段类型当做分区字段
+			if(partColumn == null){
+				List<Integer> types = Arrays.asList(new Integer[] {
+						Types.BIGINT,
+						Types.BIT,
+						Types.BOOLEAN,
+						Types.CHAR,
+						Types.DATE,
+						Types.DECIMAL,
+						Types.DOUBLE,
+						Types.FLOAT,
+						Types.INTEGER,
+						Types.LONGNVARCHAR,
+						Types.LONGVARCHAR,
+						Types.NCHAR,
+						Types.NUMERIC,
+						Types.NVARCHAR,
+						Types.REAL,
+						Types.SMALLINT,
+						Types.TIME,
+						Types.TIME_WITH_TIMEZONE,
+						Types.TIMESTAMP,
+						Types.TIMESTAMP_WITH_TIMEZONE,
+						Types.TINYINT,
+						Types.VARCHAR});
+				for(ColumnMeta meta : cols){
+					if(types.contains(meta.getDataType())){
+						partColumn = meta;
+						break;
+					}
+				}
+			}
+
+			//如果所有字段都不可排序，则抛出异常
+			if(partColumn == null){
+				throw new NotSupportedException(String.format("%s all fields data type not support ORDER BY statement, "
+						+ "could not get max and min value", fullName));
+			}
+
+			// 2. 获取分块字段的最小值和最大值
+			double max		= 0;
+			double min		= 0;
+			
+			String partCol = this.quotObject(partColumn.getName());
+
+			// 分块最小值和最大值查询及字符串类型字段的分块
+			StringBuffer minAndMaxSql = new StringBuffer(0);
+			minAndMaxSql.append("SELECT MIN(").append(partCol).append(") miv, ");
+			minAndMaxSql.append("MAX(").append(partCol).append(") mav ");
+			minAndMaxSql.append("FROM ").append(fullName);
+			// where
+			if(StringUtils.isNotBlank(where)) {
+				minAndMaxSql.append(where);
+			}
+
+			GridData data = this.executeQuery(conn, minAndMaxSql.toString());
+			List<RowData> rows = data.getRows();
+			if(!rows.isEmpty()){
+				RowData row = rows.get(0);
+				FieldData fdMin = row.getFields().get(0);
+				FieldData fdMax = row.getFields().get(1);
+				switch (partColumn.getDataType()) {
+				//整型
+				case Types.TINYINT:
+				case Types.SMALLINT:
+				case Types.INTEGER:
+				case Types.BIGINT:
+				case Types.BIT:
+					min =  Long.valueOf(String.valueOf(fdMin.getValue()));
+					max =  Long.valueOf(String.valueOf(fdMax.getValue()));
+					break;
+				case Types.BOOLEAN:
+					min = 0;
+					max = 1;
+					break;
+
+					//双精度浮点型
+				case Types.REAL:
+				case Types.FLOAT:
+				case Types.DOUBLE:
+					//数字型
+				case Types.NUMERIC:
+				case Types.DECIMAL:
+					if(fdMin.getValue() instanceof BigDecimal){
+						BigDecimal minBd = (BigDecimal) fdMin.getValue();
+						BigDecimal maxBd = (BigDecimal) fdMax.getValue();
+						min = minBd.doubleValue();
+						max = maxBd.doubleValue();
+					}
+					else{
+						min =  (double) fdMin.getValue();
+						max =  (double) fdMax.getValue();
+					}
+					break;
+
+					//日期时间型
+				case Types.TIMESTAMP:
+				case Types.TIMESTAMP_WITH_TIMEZONE:
+					String tt0 = (String) fdMin.getValue();
+					String tt1 = (String) fdMax.getValue();
+					min = Timestamp.valueOf(tt0).getTime();
+					max = Timestamp.valueOf(tt1).getTime();
+					break;
+				case Types.DATE:
+					java.sql.Date d0 = (java.sql.Date) fdMin.getValue(); 
+					java.sql.Date d1 = (java.sql.Date) fdMax.getValue();;
+					min = java.sql.Date.valueOf(d0.toString()).getTime();
+					max = java.sql.Date.valueOf(d1.toString()).getTime();
+					break;
+				case Types.TIME:
+				case Types.TIME_WITH_TIMEZONE:
+					Time t0 = (Time) fdMin.getValue(); 
+					Time t1 = (Time) fdMax.getValue();
+					min = Time.valueOf(t0.toString()).getTime();
+					max = Time.valueOf(t1.toString()).getTime();
+					break;
+
+					//字符型
+				case Types.CHAR:
+				case Types.NCHAR:
+				case Types.VARCHAR:
+				case Types.NVARCHAR:
+				case Types.LONGVARCHAR:
+				case Types.LONGNVARCHAR:
+					min = Long.MIN_VALUE;
+					max = Long.MAX_VALUE;
+					
+					List<FieldData> cutPoints 	= new ArrayList<>();
+					List<String> added 			= new ArrayList<>();
+					
+					cutPoints.add(fdMin);
+					added.add(String.valueOf(fdMin.getValue()));
+					
+					// 最大值和最小值相等
+					if(fdMin.getValue().equals(fdMax.getValue())){
+						cutPoints.add(fdMax);
+						added.add(String.valueOf(fdMax.getValue()));
+					}
+					// 最大值和最小值不相等
+					else{
+						
+						StringBuffer whereSql = new StringBuffer(0);
+						if(StringUtils.isBlank(where)){
+							whereSql.append(" WHERE ").append(partCol).append(" IS NOT NULL");
+						} else{
+							whereSql.append(where);
+							whereSql.append(" AND ").append(partCol).append(" IS NOT NULL");
+						}
+						
+						String psql = this.getCutPointSql(table, partColumn, where.toString(), totalSize, blockCnt);
+						GridData pdata = this.executeQuery(conn, psql);
+						
+						for(RowData rd :pdata.getRows()){
+							for(FieldData fd :rd.getFields()){
+								String strval = String.valueOf(fd.getValue());
+								// 去重
+								if(!added.contains(strval)){
+									added.add(strval);
+									cutPoints.add(fd);
+								}
+							}
+						}
+						// 最大值点
+						String strval = String.valueOf(fdMax.getValue());
+						if(!added.contains(strval)){
+							cutPoints.add(fdMax);
+							added.add(strval);
+						}
+					}
+					
+					
+					partitions = this.countPartitionWheres(partColumn, cutPoints);
+					
+					break;
+				default:
+					throw new NotSupportedException(String.format("error data type: name=%s, type=%s, could not get max and min value", 
+							partColumn.getTypeName()));
+				}
+
+			}
+			
+			// 分块区间值计算(公差)
+			double section = (max - min) / blockCnt;
+			String partColumnName = this.quotObject(partColumn.getName());
+			
+			if(partitions == null){
+				partitions = new ArrayList<>();
+				
+				for (int p = 0; p < blockCnt; p++) {
+
+					double start = min + section * p;
+					double end   = start + section;
+
+					TablePartitions part 		= new TablePartitions();
+					StringBuffer condition 		= new StringBuffer(0);
+					List<Object> conditionArgs	= new ArrayList<>();
+					
+					if(max == min){
+						condition.append(partColumnName).append(" = ? ");
+					}
+					// 分区字段是非字符串类型, 第一块
+					else if (p == 0) {
+						condition.append(partColumnName).append(" >= ?").append(" AND ");
+						condition.append(partColumnName).append(" < ?");
+						start = min;
+					} 
+					// 分区字段是非字符串类型, 最后一块
+					else if (p == blockCnt - 1) {
+						condition.append(partColumnName).append(" >= ?").append(" AND ");
+						condition.append(partColumnName).append(" <= ?");
+						end = max;
+					}
+					// 分区字段是非字符串类型, 中间块
+					else {
+						condition.append(partColumnName).append(" >= ?").append(" AND ");
+						condition.append(partColumnName).append(" < ?");
+					}
+					
+					conditionArgs.add(parseToObject(start, partColumn));
+					if(max != min){
+						conditionArgs.add(parseToObject(end, partColumn));
+					}
+					
+					part.setIndex(p);
+					part.setCondition(condition.toString());
+					part.setConditionArgs(conditionArgs);
+					part.setPartColumn(partColumn);
+					partitions.add(part);
+					if(max == min){
+						break;
+					}
+				}
+			}
+			
+			// 分区字段IS NULL的情况(分区字段可能不是主键)
+			TablePartitions part 		= new TablePartitions();
+			StringBuffer condition 		= new StringBuffer(0);
+			condition.append(partColumnName).append(" IS NULL");
+			part.setIndex(-1);
+			part.setCondition(condition.toString());
+			part.setPartColumn(partColumn);
+			partitions.add(part);
+		} catch (StandardException e) {
+			throw e;
+		}
+
+		return partitions;
+	}
+	
+	
+	/**
+	 * double转为object对象
+	 * 
+	 * @param value long值
+	 * @param partColumn 分区字段
+	 * @return
+	 */
+	private Object parseToObject(double value, ColumnMeta partColumn){
+		Object obj = value;
+		if(partColumn==null){
+			return obj;
+		}
+		int type = partColumn.getDataType();
+		switch (type) {
+		case Types.TINYINT:
+		case Types.SMALLINT:
+		case Types.INTEGER:
+		case Types.BIGINT:
+		case Types.BIT:
+			obj = (long)value;
+			break;
+		case Types.BOOLEAN:
+			obj = Boolean.valueOf(((int)value)!=0);
+			break;
+
+			//双精度浮点型
+		case Types.REAL:
+		case Types.FLOAT:
+		case Types.DOUBLE:
+			//数字型
+		case Types.NUMERIC:
+		case Types.DECIMAL:
+			obj = value;
+			break;
+
+			//日期时间型
+		case Types.TIMESTAMP:
+		case Types.TIMESTAMP_WITH_TIMEZONE:
+			obj = new Timestamp((long)value);
+			break;
+		case Types.DATE:
+			obj = new Date((long)value);
+			break;
+		case Types.TIME:
+		case Types.TIME_WITH_TIMEZONE:
+			obj = new Time((long)value);
+			break;
+			//字符型
+		case Types.CHAR:
+		case Types.NCHAR:
+		case Types.VARCHAR:
+		case Types.NVARCHAR:
+		case Types.LONGVARCHAR:
+		case Types.LONGNVARCHAR:
+		default:
+			break;
+		}
+
+		return obj;
 	}
 	
 	/**

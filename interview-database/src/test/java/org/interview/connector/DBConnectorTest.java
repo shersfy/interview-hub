@@ -57,5 +57,10 @@ public class DBConnectorTest extends TestCase{
 		
 	}
 	
+	public void test02() {
+		int cnt = DbConnectorInterface.countPartitionBlockCnt(1000000, 20000, 256);
+		System.out.println(cnt);
+	}
+	
 
 }
