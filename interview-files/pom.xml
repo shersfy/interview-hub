@@ -35,5 +35,12 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6</artifactId>
+			<version>6</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/libs/ojdbc6.jar</systemPath>
+		</dependency>
 	</dependencies>
 </project>
