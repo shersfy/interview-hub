@@ -21,22 +21,14 @@ public class ZookeeperConnector implements Watcher{
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperConnector.class);
 	private ZKMeta meta;
 	private ZooKeeper zk;
-
+	private CountDownLatch waitConnect;
 	private ZookeeperConnector() {}
 
 	private ZookeeperConnector(ZKMeta meta) throws IOException, InterruptedException {
 		this.meta = meta;
 		/**用于停止（等待）主进程，直到客户端与ZooKeeper集合连接**/
-		CountDownLatch waitConnect = new CountDownLatch(1);
-		zk = new ZooKeeper(meta.getConnectionString(), meta.getSessionTimeout(), new Watcher() {
-			/**实现"监视器"界面的对象。ZooKeeper集合通过监视器对象返回连接状态。**/
-			@Override
-			public void process(WatchedEvent event) {
-				if(event.getState() == KeeperState.SyncConnected) {
-					waitConnect.countDown();
-				}
-			}
-		});
+		waitConnect = new CountDownLatch(1);
+		zk = new ZooKeeper(meta.getConnectionString(), meta.getSessionTimeout(), this);
 		// 阻塞， 等待主线程
 		waitConnect.await();
 	}
@@ -64,6 +56,11 @@ public class ZookeeperConnector implements Watcher{
 	
 	@Override
 	public void process(WatchedEvent event) {
+		
+		if(waitConnect.getCount()>0 && event.getState() == KeeperState.SyncConnected) {
+			waitConnect.countDown();
+		}
+		
 		LOGGER.info("======event: {}", event);
 		
 	}
@@ -144,6 +141,28 @@ public class ZookeeperConnector implements Watcher{
 	}
 	
 	/**
+	 * 给存在的节点设置数据
+	 * 
+	 * @author shersfy
+	 * @date 2018-03-12
+	 * 
+	 * @param path 节点路径
+	 * @param data 数据
+	 * @throws StandardException
+	 */
+	public void setData(String path, byte[] data) throws StandardException {
+		try {
+			if(StringUtils.isBlank(path)) {
+				return;
+			}
+			// version=-1 匹配任意版本
+			zk.setData(path, data, -1);
+		} catch (KeeperException | InterruptedException e) {
+			throw new StandardException(e);
+		}
+	}
+	
+	/**
 	 * 获取指定节点的数据
 	 * 
 	 * @author shersfy
@@ -159,7 +178,8 @@ public class ZookeeperConnector implements Watcher{
 			if(StringUtils.isBlank(path)) {
 				return null;
 			}
-			data = zk.getData(path, this, null);
+			// watch=true, 使用构造方法中传入的watcher监听
+			data = zk.getData(path, true, null);
 		} catch (KeeperException | InterruptedException e) {
 			throw new StandardException(e);
 		}

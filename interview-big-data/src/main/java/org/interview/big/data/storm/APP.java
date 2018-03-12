@@ -1,4 +1,4 @@
-package org.interview.big.data.stom;
+package org.interview.big.data.storm;
 
 /**
  * Hello world!
