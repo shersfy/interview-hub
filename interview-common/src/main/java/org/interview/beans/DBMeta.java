@@ -68,6 +68,8 @@ public class DBMeta extends BaseMeta{
     private long retryTimeout;
     
     public DBMeta(){
+    	userName    = "";
+    	password    = "";
     	params 		= new Properties();
     	accessType 	= DBAccessType.JDBC;
     	tables 		= new ArrayList<TableMeta>();
