@@ -20,7 +20,7 @@ public class ZookeeperConnector implements Watcher{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperConnector.class);
 	private ZKMeta meta;
-	private ZooKeeper zk;
+	private ZooKeeper zkClient;
 	private CountDownLatch waitConnect;
 	private ZookeeperConnector() {}
 
@@ -28,7 +28,7 @@ public class ZookeeperConnector implements Watcher{
 		this.meta = meta;
 		/**用于停止（等待）主进程，直到客户端与ZooKeeper集合连接**/
 		waitConnect = new CountDownLatch(1);
-		zk = new ZooKeeper(meta.getConnectionString(), meta.getSessionTimeout(), this);
+		zkClient = new ZooKeeper(meta.getConnectionString(), meta.getSessionTimeout(), this);
 		// 阻塞， 等待主线程
 		waitConnect.await();
 	}
@@ -83,7 +83,7 @@ public class ZookeeperConnector implements Watcher{
 		try {
 			data = StringUtils.isBlank(data)?"":data;
 			mode = mode==null?mode=CreateMode.PERSISTENT:mode;
-			child = zk.create(path, data.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, mode);
+			child = zkClient.create(path, data.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, mode);
 		} catch (KeeperException | InterruptedException e) {
 			throw new StandardException(e);
 		}
@@ -109,10 +109,10 @@ public class ZookeeperConnector implements Watcher{
 					deleteNode(path+"/"+child, recursion);
 				}
 				LOGGER.debug("delete: {}", path);
-				zk.delete(path, -1);
+				zkClient.delete(path, -1);
 			} else {
 				LOGGER.debug("delete: {}", path);
-				zk.delete(path, -1);
+				zkClient.delete(path, -1);
 			}
 			
 		} catch (KeeperException | InterruptedException e) {
@@ -134,7 +134,16 @@ public class ZookeeperConnector implements Watcher{
 	public List<String> listNodes(String path) throws StandardException {
 		try {
 			path = StringUtils.isBlank(path)?"/":path;
-			return zk.getChildren(path, this);
+			return zkClient.getChildren(path, this);
+		} catch (KeeperException | InterruptedException e) {
+			throw new StandardException(e);
+		}
+	}
+	
+	public List<String> listNodes(String path, Watcher watcher) throws StandardException {
+		try {
+			path = StringUtils.isBlank(path)?"/":path;
+			return zkClient.getChildren(path, watcher);
 		} catch (KeeperException | InterruptedException e) {
 			throw new StandardException(e);
 		}
@@ -156,7 +165,7 @@ public class ZookeeperConnector implements Watcher{
 				return;
 			}
 			// version=-1 匹配任意版本
-			zk.setData(path, data, -1);
+			zkClient.setData(path, data, -1);
 		} catch (KeeperException | InterruptedException e) {
 			throw new StandardException(e);
 		}
@@ -179,7 +188,32 @@ public class ZookeeperConnector implements Watcher{
 				return null;
 			}
 			// watch=true, 使用构造方法中传入的watcher监听
-			data = zk.getData(path, true, null);
+			data = zkClient.getData(path, true, null);
+		} catch (KeeperException | InterruptedException e) {
+			throw new StandardException(e);
+		}
+		return data;
+	}
+	
+	/**
+	 * 获取指定节点的数据
+	 * 
+	 * @author shersfy
+	 * @date 2018-03-09
+	 * 
+	 * @param path 指定节点路径, 为空返回null
+	 * @param watcher 监听
+	 * @return 节点数据
+	 * @throws StandardException
+	 */
+	public byte[] getData(String path, Watcher watcher) throws StandardException {
+		byte[] data = null;
+		try {
+			if(StringUtils.isBlank(path)) {
+				return null;
+			}
+			// watch=true, 使用构造方法中传入的watcher监听
+			data = zkClient.getData(path, watcher, null);
 		} catch (KeeperException | InterruptedException e) {
 			throw new StandardException(e);
 		}
@@ -188,7 +222,7 @@ public class ZookeeperConnector implements Watcher{
 	
 	public void close() throws StandardException {
 		try {
-			this.zk.close();
+			this.zkClient.close();
 		} catch (Exception e) {
 			throw new StandardException(e);
 		}
@@ -202,8 +236,8 @@ public class ZookeeperConnector implements Watcher{
 		this.meta = meta;
 	}
 
-	public ZooKeeper getZk() {
-		return zk;
+	public ZooKeeper getZkClient() {
+		return zkClient;
 	}
 
 

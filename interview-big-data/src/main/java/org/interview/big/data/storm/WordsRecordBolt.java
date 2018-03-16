@@ -34,14 +34,36 @@ public class WordsRecordBolt implements IRichBolt {
 	public void execute(Tuple input) {
 		LOGGER.info("==========execute execute(Tuple input)==============", context.getThisComponentId());
 		LOGGER.info("thisId={}, msgId={}", context.getThisComponentId(), input.getMessageId());
+		
 		// id
-		String id  = input.getString(0);
+		String id = "";
 		// name
-		String name = input.getString(1);
+		String name = "";
+		// kafka
+		if(input.getFields().size()==1) {
+			LOGGER.info("kafka data: {}", input.getValue(0));
+			if(input.getValue(0)==null) {
+				return;
+			}
+			String[] arr = String.valueOf(input.getValue(0)).split(" ");
+			if(arr.length<2) {
+				return;
+			}
+			id = arr[0];
+			name = arr[1];
+		}
+		// id
+		id  = input.getString(0);
+		// name
+		name = input.getString(1);
 		
 		String[] arr = name.split("_");
-		String firstName = arr[0];
-		String lastName	 = arr[1];
+		String firstName = name;
+		String lastName = name;
+		if(arr.length>1) {
+			firstName = arr[0];
+			lastName  = arr[1];
+		}
 		collector.emit(new Values(id, firstName, lastName));
 	}
 

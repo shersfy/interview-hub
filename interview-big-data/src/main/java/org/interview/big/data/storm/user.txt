@@ -1,0 +1,8 @@
+1	zhang_san
+2	li_si
+3	wang_wu
+4	zhao_liu
+5	zhang_liu
+6	zhang_wu
+7	zhao_wu
+8	li_ba
