@@ -75,9 +75,19 @@ public class APP {
 		System.out.println("======TreeSet============");
 		app.treeSet();
 		// CopyOnWriteArraySet 线程安全
+		// 源码：
+		// transient volatile oldArr
+		// 1. add  element
+//		reentrantLock.lock() 
+//		Object[] oldArr = new Object[10];
+//		Object[] newArr = new Object[oldArr.length+1];
+//		oldArr -- > copy --> newArr
+//		newArr[last] = element
+//		reentrantLock.unlock()
+		// 2.get  return oldArr[n]
+		// 写操作时复制 消耗大量资源
 		System.out.println("======CopyOnWriteArraySet============");
 		app.copyOnWriteArraySet();
-
 
 		// 4.Map
 		// HashMap 非线程安全。元素散列存储，不能保证元素的排列顺序，遍历无序, 顺序有可能发生变化, key可以为null
