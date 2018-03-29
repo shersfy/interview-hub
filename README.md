@@ -5,6 +5,6 @@
 3. 常用nosql数据库；
 4. 大数据模块；
 5. 文件处理模块；
-6. 集群节点通信jgroups、zookeeper；
+6. 集群节点通信jgroups、zk；
 7. J2EE Web springMVC
 
