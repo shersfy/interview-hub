@@ -12,6 +12,11 @@
   <name>interview-webapp Maven Webapp</name>
   <url>http://maven.apache.org</url>
   
+  <properties>
+  		<spring.version>5.0.4.RELEASE</spring.version>
+		<quartz.version>2.2.1</quartz.version>
+  </properties>
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -22,6 +27,16 @@
     	<groupId>org.shersfy.interview</groupId>
     	<artifactId>interview-common</artifactId>
     	<version>${project.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>${spring.version}</version>
     </dependency>
   </dependencies>
   <build>
