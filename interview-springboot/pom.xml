@@ -24,14 +24,29 @@
 	        <artifactId>spring-boot-starter-web</artifactId>
    		</dependency>
 		<dependency>
+		<dependency>
+			<groupId>org.shersfy.interview</groupId>
+			<artifactId>interview-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.shersfy.interview</groupId>
-			<artifactId>interview-common</artifactId>
-			<version>${project.version}</version>
+		    <groupId>com.jolbox</groupId>
+		    <artifactId>bonecp</artifactId>
+		    <version>0.8.0.RELEASE</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.mybatis</groupId>
+		    <artifactId>mybatis-spring</artifactId>
+		    <version>1.3.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.mybatis</groupId>
+		    <artifactId>mybatis</artifactId>
+		    <version>3.4.5</version>
 		</dependency>
 	</dependencies>
 	<packaging>war</packaging>
