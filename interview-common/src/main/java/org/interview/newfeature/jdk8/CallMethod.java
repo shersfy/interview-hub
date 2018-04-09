@@ -2,19 +2,22 @@ package org.interview.newfeature.jdk8;
 
 import java.util.function.Supplier;
 
-public class ClallMethod {
+public class CallMethod {
 
 	private String name;
 	
-	public ClallMethod(){}
+	public CallMethod(){}
 	
-	public ClallMethod(String name) {
+	public CallMethod(String name) {
 		super();
 		this.name = name;
 	}
 	
-	public static ClallMethod getInstance(Supplier<ClallMethod> sup) {
+	public static CallMethod getInstance(Supplier<CallMethod> sup) {
 		return sup.get();
+	}
+	
+	public static void getInstance() {
 	}
 	
 
