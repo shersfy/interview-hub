@@ -3,6 +3,9 @@ package org.interview.common;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 /**
+ * 以下实验证明：
+ * volatile 不能保证原子性, 非线程安全, 三次加1操作后总结果会发生错误
+ * AtomicInteger 可以保证原子性, 线程安全, 三次加1操作后总结果正确
  */
 public class APP extends Thread{
 	
