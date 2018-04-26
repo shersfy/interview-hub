@@ -305,7 +305,7 @@ public class APP {
 
 		Map<String, Object> map = new Hashtable<>();
 		map.put("key1", "value1");
-		//    	map.put(" ", null);
+		    	map.put(null, "");
 		map.put("key3", "value3");
 		map.put("key2", "value2");
 		map.put("key2", "value2");
