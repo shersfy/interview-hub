@@ -30,6 +30,6 @@ var option = {
 setInterval(function () {
 	option.series[0].data[0].value = (Math.random() * 100).toFixed(2) - 0;
 	jvmChart.setOption(option, true);
-}, 5000);
+}, 2000);
 
 jvmChart.setOption(option);
