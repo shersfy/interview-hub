@@ -11,19 +11,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
-@RequestMapping("/")
 public class JWatcherController {
 	
 	private Logger logger = LoggerFactory.getLogger(JWatcherController.class);
 	
-	@RequestMapping("index")
+	@RequestMapping(value="/")
 	@ResponseBody
 	public ModelAndView index(){
 		logger.info("url={}", "index");
 		ModelAndView mv = new ModelAndView("index");
 		return mv;
 	}
-	@RequestMapping("login")
+	
+	@RequestMapping("/login")
 	@ResponseBody
 	public String login(HttpServletRequest req, HttpServletResponse res, String username, String pwd){
 		
