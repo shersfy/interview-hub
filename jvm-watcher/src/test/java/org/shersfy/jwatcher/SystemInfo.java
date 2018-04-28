@@ -1,13 +1,12 @@
 package org.shersfy.jwatcher;
 
-import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.io.FileUtils;
 import org.hyperic.sigar.CpuInfo;
 import org.hyperic.sigar.CpuPerc;
 import org.hyperic.sigar.FileSystem;
@@ -25,10 +24,6 @@ import org.hyperic.sigar.Who;
 public class SystemInfo {
 	public static void main(String[] args) {
 		try {
-			String sigarLibsPath = "sigar-bin";
-			File dir = new File(SystemInfo.class.getClassLoader().getResource(sigarLibsPath).getPath());
-			Collection<File> list = FileUtils.listFiles(dir, null, false);
-			list.forEach(file->System.loadLibrary(file.getAbsolutePath()));
 			// System信息，从jvm获取
 			property();
 			System.out.println("----------------------------------");
@@ -57,25 +52,57 @@ public class SystemInfo {
 			e1.printStackTrace();
 		}
 	}
+	
+	
+	public static void addLibraryDir(String libraryPath) throws IOException {  
+        try {  
+            Field field = ClassLoader.class.getDeclaredField("usr_paths");  
+            field.setAccessible(true);  
+            String[] paths = (String[]) field.get(null);  
+            for (int i = 0; i < paths.length; i++) {  
+                if (libraryPath.equals(paths[i])) {  
+                    return;  
+                }  
+            }  
+  
+            String[] tmp = new String[paths.length + 1];  
+            System.arraycopy(paths, 0, tmp, 0, paths.length);  
+            tmp[paths.length] = libraryPath;  
+            field.set(null, tmp);  
+        } catch (IllegalAccessException e) {  
+            throw new IOException(  
+                    "Failedto get permissions to set library path");  
+        } catch (NoSuchFieldException e) {  
+            throw new IOException(  
+                    "Failedto get field handle to set library path");  
+        }  
+    }  
 
 	private static void property() throws UnknownHostException {
 		Runtime r = Runtime.getRuntime();
+		
 		Properties props = System.getProperties();
+		
 		InetAddress addr;
 		addr = InetAddress.getLocalHost();
 		String ip = addr.getHostAddress();
+		
 		Map<String, String> map = System.getenv();
 		String userName = map.get("USERNAME");// 获取用户名
 		String computerName = map.get("COMPUTERNAME");// 获取计算机名
 		String userDomain = map.get("USERDOMAIN");// 获取计算机域名
+		
 		System.out.println("用户名:    " + userName);
 		System.out.println("计算机名:    " + computerName);
 		System.out.println("计算机域名:    " + userDomain);
+		
 		System.out.println("本地ip地址:    " + ip);
 		System.out.println("本地主机名:    " + addr.getHostName());
+		
 		System.out.println("JVM可以使用的总内存:    " + r.totalMemory());
 		System.out.println("JVM可以使用的剩余内存:    " + r.freeMemory());
 		System.out.println("JVM可以使用的处理器个数:    " + r.availableProcessors());
+		
 		System.out.println("Java的运行环境版本：    " + props.getProperty("java.version"));
 		System.out.println("Java的运行环境供应商：    " + props.getProperty("java.vendor"));
 		System.out.println("Java供应商的URL：    " + props.getProperty("java.vendor.url"));
@@ -91,6 +118,7 @@ public class SystemInfo {
 		System.out.println("Java运行时环境规范名称：    " + props.getProperty("java.specification.name"));
 		System.out.println("Java的类格式版本号：    " + props.getProperty("java.class.version"));
 		System.out.println("Java的类路径：    " + props.getProperty("java.class.path"));
+		
 		System.out.println("加载库时搜索的路径列表：    " + props.getProperty("java.library.path"));
 		System.out.println("默认的临时文件路径：    " + props.getProperty("java.io.tmpdir"));
 		System.out.println("一个或多个扩展目录的路径：    " + props.getProperty("java.ext.dirs"));
@@ -157,8 +185,8 @@ public class SystemInfo {
 		// 系统描述
 		System.out.println("操作系统的描述:    " + OS.getDescription());
 		// 操作系统类型
-		// System.out.println("OS.getName():    " + OS.getName());
-		// System.out.println("OS.getPatchLevel():    " + OS.getPatchLevel());//
+		 System.out.println("OS.getName():    " + OS.getName());
+		 System.out.println("OS.getPatchLevel():    " + OS.getPatchLevel());//
 		// 操作系统的卖主
 		System.out.println("操作系统的卖主:    " + OS.getVendor());
 		// 卖主名称

@@ -1,14 +1,59 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" >
-	<head>
-	    <title>JVM Watcher</title>
-	    <meta charset="UTF-8"/>
-	    <link href="imgs/logo.png" rel="icon" type="image/x-icon"/>
-	   	<link href="css/main.css" rel="stylesheet"/>
-	   	<script src="libs/echarts.min.js" type="text/javascript"></script>
-	</head>
-	<body>
-		<div id="jvmChart" style="width:800px; height:600px;"></div>
-  		<script src="js/index.js"></script>
-	</body>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>JVM Watcher</title>
+
+<meta charset="UTF-8" />
+<link href="imgs/logo.png" rel="icon" type="image/x-icon" />
+<link href="css/main.css" rel="stylesheet" />
+<script src="libs/echarts.min.js" type="text/javascript"></script>
+
+<link rel="stylesheet"  href="libs/datatables/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="libs/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" charset="utf8" src="libs/datatables/js/jquery.dataTables.min.js"></script>
+
+<script type="text/javascript" src="js/system.js"></script>
+
+</head>
+<body>
+	<table id="system" class="display">
+	    <thead>
+	        <tr>
+	            <th colspan="2">系统信息</th>
+	        </tr>
+	    </thead>
+	    <tbody>
+	        <tr>
+	            <td>操作系统</td>
+	            <td th:text="${system.os}"></td>
+	        </tr>
+	        <tr>
+	            <td>计算机名称</td>
+	            <td th:text="${system.name}"></td>
+	        </tr>
+	        <tr>
+	            <td>IP地址</td>
+	            <td th:text="${system.ip}"></td>
+	        </tr>
+	        <tr>
+	            <td>CPU</td>
+	            <td th:text="${system.cpu}"></td>
+	        </tr>
+	        <tr>
+	            <td>内存</td>
+	            <td th:text="${system.ram}"></td>
+	        </tr>
+	        <tr>
+	            <td>硬盘</td>
+	            <td th:text="${system.disksSize}"></td>
+	        </tr>
+	        <tr th:each="disk: ${system.disks}">
+	            <td th:text="${disk.name}"></td>
+	            <td th:text="|${disk.type}, ${disk.fileSystem}, Total ${disk.totalStr}, Used ${disk.UsedStr}|"></td>
+	        </tr>
+	    </tbody>
+	</table>
+	<div id="jvmChart" style="width: 800px; height: 600px;"></div>
+	<script src="js/index.js"></script>
+</body>
 </html>

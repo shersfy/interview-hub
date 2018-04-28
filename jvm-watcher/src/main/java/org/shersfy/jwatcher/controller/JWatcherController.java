@@ -1,10 +1,11 @@
 package org.shersfy.jwatcher.controller;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.shersfy.jwatcher.beans.Result;
+import org.shersfy.jwatcher.service.SystemInfoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -13,15 +14,25 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class JWatcherController {
 	
-	private Logger logger = LoggerFactory.getLogger(JWatcherController.class);
+	@Resource
+	SystemInfoService systemInfoService;
 	
-	@RequestMapping(value="/")
+	@RequestMapping("/")
 	@ResponseBody
 	public ModelAndView index(){
-		logger.info("url={}", "index");
 		ModelAndView mv = new ModelAndView("index");
+		mv.addObject("system", systemInfoService.getSystemInfo());
 		return mv;
 	}
+	
+	@RequestMapping("/system")
+	@ResponseBody
+	public Result getSystemInfo(){
+		Result res = new Result();
+		res.setModel(systemInfoService.getSystemInfo());
+		return res;
+	}
+	
 	
 	@RequestMapping("/login")
 	@ResponseBody
