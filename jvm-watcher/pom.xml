@@ -12,9 +12,15 @@
 	<artifactId>jvm-watcher</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
-
 	<name>jvm-watcher</name>
 	<url>http://maven.apache.org</url>
+
+	<repositories>
+		<repository>
+			<id>cloudera</id>
+			<url>https://mvnrepository.com</url>
+		</repository>
+	</repositories>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -34,6 +40,18 @@
             <groupId>org.springframework.boot</groupId>  
             <artifactId>spring-boot-starter-thymeleaf</artifactId>  
         </dependency>
+        <dependency>
+		    <groupId>commons-fileupload</groupId>
+		    <artifactId>commons-fileupload</artifactId>
+		    <version>1.3.3</version>
+		</dependency>
+        <dependency>
+		    <groupId>org.hyperic</groupId>
+		    <artifactId>sigar</artifactId>
+		    <version>1.6.4</version>
+		    <scope>system</scope>
+		    <systemPath>${project.basedir}/libs/sigar-1.6.4.jar</systemPath>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>jvm-watcher-${project.version}</finalName>

@@ -22,7 +22,7 @@ var option = {
 				name: 'JVM内存状态',
 				type: 'gauge',
 				detail: {formatter:'{value}%'},
-				data: [{value: 50, name: 'Java进程已使用'}]
+				data: [{value: 0, name: 'Java进程已使用'}]
 			}
 			]
 };
