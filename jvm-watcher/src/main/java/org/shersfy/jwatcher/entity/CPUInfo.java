@@ -13,7 +13,7 @@ public class CPUInfo extends BaseEntity {
 	private double nice;
 	
 	private double used;
-	private double free;
+	private double idle;
 	
 	public double getUser() {
 		return user;
@@ -30,9 +30,6 @@ public class CPUInfo extends BaseEntity {
 	public double getUsed() {
 		return used;
 	}
-	public double getFree() {
-		return free;
-	}
 	public void setUser(double user) {
 		this.user = user;
 	}
@@ -48,8 +45,11 @@ public class CPUInfo extends BaseEntity {
 	public void setUsed(double used) {
 		this.used = used;
 	}
-	public void setFree(double free) {
-		this.free = free;
+	public double getIdle() {
+		return idle;
+	}
+	public void setIdle(double idle) {
+		this.idle = idle;
 	}
 	
 	

@@ -21,6 +21,13 @@ public class JWatcherController extends BaseController{
 	@ResponseBody
 	public ModelAndView index(){
 		ModelAndView mv = new ModelAndView("index");
+		return mv;
+	}
+	
+	@RequestMapping("/system")
+	@ResponseBody
+	public ModelAndView system(){
+		ModelAndView mv = new ModelAndView("system");
 		mv.addObject("system", systemInfoService.getSystemInfo());
 		return mv;
 	}
@@ -29,8 +36,8 @@ public class JWatcherController extends BaseController{
 	@ResponseBody
 	public ModelAndView capacity(){
 		ModelAndView mv = new ModelAndView("capacity");
-//		mv.addObject("cpu", systemInfoService.getCpuInfo());
-//		mv.addObject("memo", systemInfoService.getMemory());
+		mv.addObject("cpu", systemInfoService.getCpuInfo());
+		mv.addObject("memo", systemInfoService.getMemory());
 		return mv;
 	}
 	
@@ -39,6 +46,14 @@ public class JWatcherController extends BaseController{
 	public Result getMemoInfo(){
 		Result res = new Result();
 		res.setModel(systemInfoService.getMemory());
+		return res;
+	}
+	
+	@RequestMapping("/cpu")
+	@ResponseBody
+	public Result getCpuInfo(){
+		Result res = new Result();
+		res.setModel(systemInfoService.getCpuInfo());
 		return res;
 	}
 	
