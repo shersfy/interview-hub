@@ -152,7 +152,7 @@ public class SystemInfoService extends BaseService{
 		long ram = mem==null?0:mem.getRam() * 1024 * 1024;
 		memo.setTotal(ram);
 		memo.setUsed(mem.getUsed());
-		memo.setUsedPercent(mem.getUsedPercent());
+		memo.setUsedPercent((double)mem.getUsed()/mem.getTotal()*100);
 		
 		return memo;
 	}
@@ -179,21 +179,21 @@ public class SystemInfoService extends BaseService{
 			double wait = 0;
 			double nice = 0;
 			double used = 0;
-			double free = 0;
+			double idle = 0;
 			for(CpuPerc c :cpArr){
 				user += c.getUser();
 				sys  += c.getSys();
 				wait += c.getWait();
 				nice += c.getNice();
 				used += c.getCombined();
-				free += c.getIdle();
+				idle += c.getIdle();
 			}
 			cpu.setUser(user/cpArr.length);
 			cpu.setSystem(sys/cpArr.length);
 			cpu.setWait(wait/cpArr.length);
 			cpu.setNice(nice/cpArr.length);
 			cpu.setUsed(used/cpArr.length);
-			cpu.setFree(free/cpArr.length);
+			cpu.setIdle(idle/cpArr.length);
 			
 		}
 		
