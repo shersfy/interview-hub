@@ -6,20 +6,20 @@
 <meta charset="UTF-8" />
 <link href="imgs/logo.png" rel="icon" type="image/x-icon" />
 <link href="css/main.css" rel="stylesheet" />
-<script src="libs/echarts.min.js" type="text/javascript"></script>
+<link rel="stylesheet"  href="libs/datatables/css/jquery.dataTables.min.css">
 
-<link rel="stylesheet"  href="libs/datatables/css/jquery.dataTables.css">
 <script type="text/javascript" charset="utf8" src="libs/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="js/index.js"></script>
 <script type="text/javascript" charset="utf8" src="libs/datatables/js/jquery.dataTables.min.js"></script>
-
 <script type="text/javascript" src="js/system.js"></script>
 
 </head>
-<body>
-	<table id="system" class="display">
+<body index="1">
+	<div th:include="header"></div>
+	<table id="system" class="display" style="margin-top: 20px;">
 	    <thead>
 	        <tr>
-	            <th colspan="2">系统信息</th>
+	            <th colspan="2" align="left">系统信息</th>
 	        </tr>
 	    </thead>
 	    <tbody>
@@ -49,11 +49,9 @@
 	        </tr>
 	        <tr th:each="disk: ${system.disks}">
 	            <td th:text="${disk.name}"></td>
-	            <td th:text="|${disk.type}, ${disk.fileSystem}, Total ${disk.totalStr}, Used ${disk.UsedStr}|"></td>
+	            <td th:text="|${disk.type}, ${disk.fileSystem}, Total ${disk.totalStr}, Used ${disk.usedStr} ${disk.usedPercent}|"></td>
 	        </tr>
 	    </tbody>
 	</table>
-	<div id="jvmChart" style="width: 800px; height: 600px;"></div>
-	<script src="js/index.js"></script>
 </body>
 </html>

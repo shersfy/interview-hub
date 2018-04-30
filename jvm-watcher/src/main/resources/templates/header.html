@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="css/header.css">
+</head>
+<body>
+	<div class="box">
+		<ul class="f-nav" id='f-nav'>
+			<li th:href="${basePath}">首页</li>
+			<li >JVM参数</li>
+			<li >Java进程</li>
+			<li th:href="|${basePath}/capacity|">综合性能</li>
+			<div class='sideline'></div>
+		</ul>
+	</div>
+	<script type="text/javascript" charset="utf8" src="js/nav.js"></script>
+	<script type="text/javascript" charset="utf8" src="js/header.js"></script>
+</body>
+</html>

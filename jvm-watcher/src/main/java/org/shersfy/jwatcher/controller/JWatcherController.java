@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
-public class JWatcherController {
+public class JWatcherController extends BaseController{
 	
 	@Resource
 	SystemInfoService systemInfoService;
@@ -25,11 +25,20 @@ public class JWatcherController {
 		return mv;
 	}
 	
-	@RequestMapping("/system")
+	@RequestMapping("/capacity")
 	@ResponseBody
-	public Result getSystemInfo(){
+	public ModelAndView capacity(){
+		ModelAndView mv = new ModelAndView("capacity");
+//		mv.addObject("cpu", systemInfoService.getCpuInfo());
+//		mv.addObject("memo", systemInfoService.getMemory());
+		return mv;
+	}
+	
+	@RequestMapping("/memo")
+	@ResponseBody
+	public Result getMemoInfo(){
 		Result res = new Result();
-		res.setModel(systemInfoService.getSystemInfo());
+		res.setModel(systemInfoService.getMemory());
 		return res;
 	}
 	

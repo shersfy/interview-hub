@@ -6,16 +6,20 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.annotation.PostConstruct;
 import javax.swing.filechooser.FileSystemView;
 
 import org.hyperic.sigar.CpuInfo;
+import org.hyperic.sigar.CpuPerc;
 import org.hyperic.sigar.FileSystem;
 import org.hyperic.sigar.FileSystemUsage;
 import org.hyperic.sigar.Mem;
 import org.hyperic.sigar.OperatingSystem;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
+import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.DiskInfo;
+import org.shersfy.jwatcher.entity.Memory;
 import org.shersfy.jwatcher.entity.SystemInfo;
 import org.shersfy.jwatcher.utils.FileUtil;
 import org.springframework.stereotype.Component;
@@ -24,6 +28,11 @@ import org.springframework.stereotype.Component;
 public class SystemInfoService extends BaseService{
 
 	private Sigar sigar;
+	
+	@PostConstruct
+	private void init(){
+		sigar = new Sigar();
+	}
 
 	public SystemInfo getSystemInfo(){
 
@@ -105,10 +114,10 @@ public class SystemInfoService extends BaseService{
 				disk.setName(fsv.getSystemDisplayName(root));
 				disk.setType(fsv.getSystemTypeDescription(root));
 				disk.setFileSystem(fs.getSysTypeName());
-				
 				if(usage!=null){
 					disk.setTotal(usage.getTotal()*1024);
 					disk.setUsed(usage.getUsed()*1024);
+					disk.setUsedPercent(String.format("%.0f%%", usage.getUsePercent()*100));
 				}
 				
 				info.getDisks().add(disk);
@@ -129,6 +138,70 @@ public class SystemInfoService extends BaseService{
 //		}
 
 		return info;
+	}
+	
+	public Memory getMemory(){
+		Memory memo = new Memory();
+		// RAM
+		Mem mem = null;
+		try {
+			mem = sigar.getMem();
+		} catch (SigarException e) {
+			LOGGER.error("", e);
+		}
+		long ram = mem==null?0:mem.getRam() * 1024 * 1024;
+		memo.setTotal(ram);
+		memo.setUsed(mem.getUsed());
+		memo.setUsedPercent(mem.getUsedPercent());
+		
+		return memo;
+	}
+	
+	public CPUInfo getCpuInfo(){
+		CPUInfo cpu = new CPUInfo();
+		CpuPerc[] cpArr  = null;
+		CpuInfo[] cpuArr = null;
+		try {
+			cpuArr = sigar.getCpuInfoList();
+		} catch (SigarException e) {
+			LOGGER.error("", e);
+		}
+
+		try {
+			cpArr = sigar.getCpuPercList();
+			cpuArr = sigar.getCpuInfoList();
+		} catch (SigarException e) {
+			LOGGER.error("", e);
+		}
+		if(cpArr!=null){
+			double user = 0;
+			double sys  = 0;
+			double wait = 0;
+			double nice = 0;
+			double used = 0;
+			double free = 0;
+			for(CpuPerc c :cpArr){
+				user += c.getUser();
+				sys  += c.getSys();
+				wait += c.getWait();
+				nice += c.getNice();
+				used += c.getCombined();
+				free += c.getIdle();
+			}
+			cpu.setUser(user/cpArr.length);
+			cpu.setSystem(sys/cpArr.length);
+			cpu.setWait(wait/cpArr.length);
+			cpu.setNice(nice/cpArr.length);
+			cpu.setUsed(used/cpArr.length);
+			cpu.setFree(free/cpArr.length);
+			
+		}
+		
+		if(cpuArr!=null&&cpuArr.length!=0){
+			cpu.setName(String.format("%s %s", cpuArr[0].getVendor(), cpuArr[0].getModel()));
+		}
+		
+		return cpu;
 	}
 
 }
