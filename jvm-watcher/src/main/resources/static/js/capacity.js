@@ -93,28 +93,29 @@ var capacity = {
 		// 定时刷新
 		flush: function(interval){
 			var id = setInterval(function () {
-				// memo
+				// capacity
 				$.ajax({
-					url: 'memo',
+					url: basePath + '/watch/capacity',
 					success:function(data){
 						if (data.code != 200 ){
 							alert("请求错误: "+url);
 							return ;
 						}
-						capacity.initMemoChart(data.model);
+						capacity.initMemoChart(data.model.memo);
+						capacity.initCPUChart(data.model.cpu);
 					}
 				});
 				// cpu
-				$.ajax({
-					url: 'cpu',
-					success:function(data){
-						if (data.code != 200 ){
-							alert("请求错误: "+url);
-							return ;
-						}
-						capacity.initCPUChart(data.model);
-					}
-				});
+//				$.ajax({
+//					url: basePath + '/watch/cpu',
+//					success:function(data){
+//						if (data.code != 200 ){
+//							alert("请求错误: "+url);
+//							return ;
+//						}
+//						capacity.initCPUChart(data.model);
+//					}
+//				});
 			}, interval);
 			return id;
 		}

@@ -1,3 +1,3 @@
 $(function() {
-	header.setContent("system");
+	header.setContent(basePath + '/system');
 })
