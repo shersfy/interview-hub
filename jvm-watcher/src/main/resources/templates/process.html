@@ -20,8 +20,8 @@
 	            <td>可执行程序</td>
 	        </tr>
 	        <tr th:each="process: ${processes}">
-	            <td th:text="${process.pid}"></td>
-	            <td th:text="${process.name}"></td>
+	            <td width="10%" th:text="${process.pid}"></td>
+	            <td width="30%" th:text="${process.name}"></td>
 	            <td th:text="${process.exePath}"></td>
 	        </tr>
 	    </tbody>
