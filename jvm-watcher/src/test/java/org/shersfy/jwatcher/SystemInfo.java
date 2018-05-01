@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.hyperic.sigar.CpuInfo;
 import org.hyperic.sigar.CpuPerc;
@@ -20,6 +22,11 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.hyperic.sigar.Swap;
 import org.hyperic.sigar.Who;
+
+import sun.jvmstat.monitor.MonitoredHost;
+import sun.jvmstat.monitor.MonitoredVm;
+import sun.jvmstat.monitor.MonitoredVmUtil;
+import sun.jvmstat.monitor.VmIdentifier;
 
 public class SystemInfo {
 	public static void main(String[] args) {
@@ -48,6 +55,8 @@ public class SystemInfo {
 			// 以太网信息
 			ethernet();
 			System.out.println("----------------------------------");
+			// 进程
+			proccess();
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}
@@ -309,5 +318,24 @@ public class SystemInfo {
 			System.out.println(cfg.getName() + "网卡描述信息:" + cfg.getDescription());// 网卡描述信息
 			System.out.println(cfg.getName() + "网卡类型" + cfg.getType());//
 		}
+	}
+	
+	private static void proccess() throws Exception{
+		MonitoredHost local = MonitoredHost.getMonitoredHost("localhost");
+		// 取得所有在活动的虚拟机集合
+        Set<Integer> vmlist = new HashSet<Integer>(local.activeVms());
+     // 遍历集合，输出PID和进程名
+        Sigar sigar = new Sigar();
+        for(Integer pid : vmlist) {
+            MonitoredVm vm = local.getMonitoredVm(new VmIdentifier("//" + pid));
+            // 获取类名
+           
+            String processname = MonitoredVmUtil.mainClass(vm, true);
+            System.out.println("======================");
+            System.out.println("pid: "+pid);
+            System.out.println("pname: "+processname);
+            System.out.println("memo: "+sigar.getProcMem(pid));
+            System.out.println("state: "+sigar.getProcStat());
+        }
 	}
 }

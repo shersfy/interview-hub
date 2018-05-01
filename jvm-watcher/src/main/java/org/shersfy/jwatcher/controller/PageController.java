@@ -28,6 +28,14 @@ public class PageController extends BaseController {
 		mv.addObject("system", systemInfoService.getSystemInfo());
 		return mv;
 	}
+	
+	@RequestMapping("/jvm")
+	@ResponseBody
+	public ModelAndView jvm(){
+		ModelAndView mv = new ModelAndView("jvm");
+		mv.addObject("jvm", systemInfoService.getJvmInfo());
+		return mv;
+	}
 
 	@RequestMapping("/capacity")
 	@ResponseBody

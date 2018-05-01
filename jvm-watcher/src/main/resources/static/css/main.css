@@ -4,3 +4,11 @@ body {
 	font: 12px/17px Arial, sans-serif;
 	background: #f9f9f9;
 }
+a {
+	text-decoration: none;
+	color: blue;
+}
+table {
+	font-size: 14px;
+	font-family: Microsoft YaHei;
+}

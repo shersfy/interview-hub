@@ -1,6 +1,9 @@
 package org.shersfy.jwatcher.service;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -19,6 +22,7 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.DiskInfo;
+import org.shersfy.jwatcher.entity.JVMInfo;
 import org.shersfy.jwatcher.entity.Memory;
 import org.shersfy.jwatcher.entity.SystemInfo;
 import org.shersfy.jwatcher.utils.FileUtil;
@@ -28,10 +32,12 @@ import org.springframework.stereotype.Component;
 public class SystemInfoService extends BaseService{
 
 	private Sigar sigar;
+	private JVMInfo jvm;
 	
 	@PostConstruct
 	private void init(){
 		sigar = new Sigar();
+		jvm   = new JVMInfo();
 	}
 
 	public SystemInfo getSystemInfo(){
@@ -138,6 +144,32 @@ public class SystemInfoService extends BaseService{
 //		}
 
 		return info;
+	}
+	
+	public JVMInfo getJvmInfo(){
+		
+		Properties props = System.getProperties();
+		MemoryMXBean mx  = ManagementFactory.getMemoryMXBean();
+		MemoryUsage heap = mx.getHeapMemoryUsage();
+		Runtime runtime  = Runtime.getRuntime();
+		
+		jvm.setJavaVersion(String.format("%s Build %s", 
+				props.getProperty("java.version"),
+				props.getProperty("java.vm.version")));
+		jvm.setJavaVendor(props.getProperty("java.vendor"));
+		jvm.setJavaVendorUrl(props.getProperty("java.vendor.url"));
+		jvm.setJavaHome(props.getProperty("java.home"));
+		jvm.setJavaHome(props.getProperty("java.home"));
+		
+		jvm.setInitMemory(heap.getInit());
+		jvm.setMaxMemory(heap.getMax());
+		jvm.setUsedMemory(heap.getUsed());
+		
+		jvm.setTotalMemory(runtime.totalMemory());
+		jvm.setFreeMemory(runtime.freeMemory());
+		jvm.setProcessors(runtime.availableProcessors());
+		
+		return this.jvm;
 	}
 	
 	public Memory getMemory(){
