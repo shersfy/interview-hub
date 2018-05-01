@@ -6,8 +6,11 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.swing.filechooser.FileSystemView;
@@ -23,10 +26,16 @@ import org.hyperic.sigar.SigarException;
 import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.DiskInfo;
 import org.shersfy.jwatcher.entity.JVMInfo;
+import org.shersfy.jwatcher.entity.JVMProcess;
 import org.shersfy.jwatcher.entity.Memory;
 import org.shersfy.jwatcher.entity.SystemInfo;
 import org.shersfy.jwatcher.utils.FileUtil;
 import org.springframework.stereotype.Component;
+
+import sun.jvmstat.monitor.MonitoredHost;
+import sun.jvmstat.monitor.MonitoredVm;
+import sun.jvmstat.monitor.MonitoredVmUtil;
+import sun.jvmstat.monitor.VmIdentifier;
 
 @Component
 public class SystemInfoService extends BaseService{
@@ -170,6 +179,29 @@ public class SystemInfoService extends BaseService{
 		jvm.setProcessors(runtime.availableProcessors());
 		
 		return this.jvm;
+	}
+	
+	public List<JVMProcess> getLocalJvmProcesses(){
+		List<JVMProcess> list = new ArrayList<>();
+		try {
+			MonitoredHost local = MonitoredHost.getMonitoredHost("localhost");
+			// 取得所有在活动的虚拟机集合
+			Set<Integer> pids = local.activeVms();
+			// 遍历PID和进程名
+			for(Integer pid : pids){
+				MonitoredVm vm = local.getMonitoredVm(new VmIdentifier("//" + pid));
+				String mainClass = MonitoredVmUtil.mainClass(vm, true);
+				JVMProcess p = new JVMProcess();
+				p.setPid(pid);
+				p.setName(mainClass);
+				p.setExePath(sigar.getProcExe(pid).getName());
+				list.add(p);
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return list;
 	}
 	
 	public Memory getMemory(){

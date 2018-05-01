@@ -36,6 +36,14 @@ public class PageController extends BaseController {
 		mv.addObject("jvm", systemInfoService.getJvmInfo());
 		return mv;
 	}
+	
+	@RequestMapping("/process")
+	@ResponseBody
+	public ModelAndView process(){
+		ModelAndView mv = new ModelAndView("process");
+		mv.addObject("processes", systemInfoService.getLocalJvmProcesses());
+		return mv;
+	}
 
 	@RequestMapping("/capacity")
 	@ResponseBody

@@ -56,7 +56,7 @@ public class SystemInfo {
 			ethernet();
 			System.out.println("----------------------------------");
 			// 进程
-			proccess();
+			process();
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}
@@ -320,7 +320,7 @@ public class SystemInfo {
 		}
 	}
 	
-	private static void proccess() throws Exception{
+	private static void process() throws Exception{
 		MonitoredHost local = MonitoredHost.getMonitoredHost("localhost");
 		// 取得所有在活动的虚拟机集合
         Set<Integer> vmlist = new HashSet<Integer>(local.activeVms());
@@ -329,11 +329,11 @@ public class SystemInfo {
         for(Integer pid : vmlist) {
             MonitoredVm vm = local.getMonitoredVm(new VmIdentifier("//" + pid));
             // 获取类名
-           
             String processname = MonitoredVmUtil.mainClass(vm, true);
             System.out.println("======================");
             System.out.println("pid: "+pid);
-            System.out.println("pname: "+processname);
+            System.out.println("mainClass: "+processname);
+            System.out.println("dir: "+sigar.getProcExe(pid).getName());
             System.out.println("memo: "+sigar.getProcMem(pid));
             System.out.println("state: "+sigar.getProcStat());
         }

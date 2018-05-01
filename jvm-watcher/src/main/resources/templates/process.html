@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet"  href="libs/datatables/css/jquery.dataTables.min.css">
+<script type="text/javascript" charset="utf8" src="libs/datatables/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="js/process.js"></script>
+</head>
+<body index="3">
+	<table id="process" class="display" style="margin-top: 20px;">
+	    <thead>
+	        <tr>
+	            <th colspan="3" align="left">JVM本地进程</th>
+	        </tr>
+	    </thead>
+	    <tbody>
+	        <tr style="font-weight: bold;">
+	            <td>PID</td>
+	            <td>主程序</td>
+	            <td>可执行程序</td>
+	        </tr>
+	        <tr th:each="process: ${processes}">
+	            <td th:text="${process.pid}"></td>
+	            <td th:text="${process.name}"></td>
+	            <td th:text="${process.exePath}"></td>
+	        </tr>
+	    </tbody>
+	</table>
+</body>
+</html>
