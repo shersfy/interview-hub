@@ -12,3 +12,6 @@ table {
 	font-size: 14px;
 	font-family: Microsoft YaHei;
 }
+.dataTables_wrapper{
+	margin-top: 10px;
+}

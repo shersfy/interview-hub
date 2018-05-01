@@ -3,6 +3,7 @@ $(document).ready( function () {
 		"info": false,
 		"ordering": false,
 		"lengthChange": false,
-		"paging": false
+		"paging": false,
+		"searching": false
 	});
 } );

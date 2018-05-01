@@ -20,7 +20,7 @@ public class PageController extends BaseController {
 		ModelAndView mv = new ModelAndView("index");
 		return mv;
 	}
-
+	
 	@RequestMapping("/system")
 	@ResponseBody
 	public ModelAndView system(){
