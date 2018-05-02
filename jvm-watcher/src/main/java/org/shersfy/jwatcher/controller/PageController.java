@@ -57,7 +57,6 @@ public class PageController extends BaseController {
 	@ResponseBody
 	public ModelAndView config(){
 		ModelAndView mv = new ModelAndView("config");
-		mv.addObject("config", SystemInfoService.conf);
 		return mv;
 	}
 }
