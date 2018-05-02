@@ -53,4 +53,11 @@ public class PageController extends BaseController {
 		mv.addObject("cpu", systemInfoService.getCpuInfo());
 		return mv;
 	}
+	@RequestMapping("/config")
+	@ResponseBody
+	public ModelAndView config(){
+		ModelAndView mv = new ModelAndView("config");
+		mv.addObject("config", SystemInfoService.config);
+		return mv;
+	}
 }

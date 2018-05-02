@@ -4,17 +4,27 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
+import java.lang.management.OperatingSystemMXBean;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
+import javax.management.MBeanInfo;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
 import javax.swing.filechooser.FileSystemView;
 
+import org.apache.commons.lang.StringUtils;
 import org.hyperic.sigar.CpuInfo;
 import org.hyperic.sigar.CpuPerc;
 import org.hyperic.sigar.FileSystem;
@@ -23,7 +33,9 @@ import org.hyperic.sigar.Mem;
 import org.hyperic.sigar.OperatingSystem;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
+import org.shersfy.jwatcher.beans.Result;
 import org.shersfy.jwatcher.entity.CPUInfo;
+import org.shersfy.jwatcher.entity.Config;
 import org.shersfy.jwatcher.entity.DiskInfo;
 import org.shersfy.jwatcher.entity.JVMInfo;
 import org.shersfy.jwatcher.entity.JVMProcess;
@@ -40,6 +52,7 @@ import sun.jvmstat.monitor.VmIdentifier;
 @Component
 public class SystemInfoService extends BaseService{
 
+	public static Config config;
 	private Sigar sigar;
 	private JVMInfo jvm;
 	
@@ -47,10 +60,44 @@ public class SystemInfoService extends BaseService{
 	private void init(){
 		sigar = new Sigar();
 		jvm   = new JVMInfo();
+		config = new Config("localhost");
 	}
 
 	public SystemInfo getSystemInfo(){
 
+		SystemInfo info = new SystemInfo();
+		Result res = getJmxConnector(config.getJmxRmiUri());
+		if(res.getCode()==SUCESS && res.getModel() instanceof MBeanServerConnection){
+			MBeanServerConnection conn = (MBeanServerConnection) res.getModel();
+			try {
+				// Server OS Core
+				String url = config.getJmxRmiUri();
+				String str = "jndi/";
+				if(url.contains(str)){
+					url = url.substring(url.indexOf(str)+str.length());
+					url = url.replace("rmi://", "http://");
+				}
+				URL jmxUrl = new URL(url);
+				OperatingSystemMXBean mxOS = ManagementFactory.getPlatformMXBean(conn, OperatingSystemMXBean.class);
+				info.setOs(String.format("%s %s %s", 
+						mxOS.getName(),
+						mxOS.getVersion(),
+						mxOS.getArch()));
+				info.setName(mxOS.getName());
+				info.setHost(jmxUrl.getHost());
+				info.setIp(jmxUrl.getHost());
+				
+				// CPU
+				info.setCpu(String.valueOf(mxOS.getAvailableProcessors()));
+				
+				// memo
+				MemoryMXBean mxMemo = ManagementFactory.getPlatformMXBean(conn, MemoryMXBean.class);
+				info.setRam(mxMemo.getHeapMemoryUsage().toString());
+			} catch (Exception e) {
+				LOGGER.error("", e);
+			}
+			return info;
+		}
 		Map<String, String> env = System.getenv();
 		Properties props = System.getProperties();
 		OperatingSystem os = OperatingSystem.getInstance();
@@ -66,7 +113,6 @@ public class SystemInfoService extends BaseService{
 		}
 
 		// Address
-		SystemInfo info = new SystemInfo();
 		info.setName(env.getOrDefault("COMPUTERNAME", ""));
 		info.setDomain(env.getOrDefault("USERDOMAIN", ""));
 
@@ -121,19 +167,20 @@ public class SystemInfoService extends BaseService{
 				File root = new File(fs.getDirName());
 				FileSystemUsage usage = null;
 				try {
-					usage = sigar.getFileSystemUsage(fs.getDirName());
+					if(fs.getType()!=FileSystem.TYPE_CDROM){
+						usage = sigar.getFileSystemUsage(fs.getDirName());
+					}
 				} catch (SigarException e) {
 					LOGGER.error("", e);
 				}
 				DiskInfo disk = new DiskInfo();
-				disk.setName(fsv.getSystemDisplayName(root));
+				String name = fsv.getSystemDisplayName(root);
+				disk.setName(StringUtils.isBlank(name)?root.getPath():name);
 				disk.setType(fsv.getSystemTypeDescription(root));
 				disk.setFileSystem(fs.getSysTypeName());
-				if(usage!=null){
-					disk.setTotal(usage.getTotal()*1024);
-					disk.setUsed(usage.getUsed()*1024);
-					disk.setUsedPercent(String.format("%.0f%%", usage.getUsePercent()*100));
-				}
+				disk.setTotal(usage==null?0:usage.getTotal()*1024);
+				disk.setUsed(usage==null?0:usage.getUsed()*1024);
+				disk.setUsedPercent(usage==null?"0%":String.format("%.0f%%", usage.getUsePercent()*100));
 				
 				info.getDisks().add(disk);
 			}
@@ -266,6 +313,35 @@ public class SystemInfoService extends BaseService{
 		}
 		
 		return cpu;
+	}
+	
+	/**
+	 * 创建JMX RMI连接
+	 * 
+	 * @param jmxRmiUri 连接串
+	 * @return 返回 model: code=200, 返回MBeanServerConnection 对象或null(本地时)
+	 */
+	public Result getJmxConnector(String jmxRmiUri){
+		Result res = new Result();
+		if(StringUtils.isBlank(jmxRmiUri) || "localhost".equalsIgnoreCase(jmxRmiUri)){
+			res.setModel(new JMXLocalConnector());
+			return res;
+		}
+		
+		try {
+			
+			JMXServiceURL serviceURL = new JMXServiceURL(jmxRmiUri);
+			JMXConnector connector   = JMXConnectorFactory.connect(serviceURL);
+			MBeanServerConnection mbsc = connector.getMBeanServerConnection();
+			res.setModel(mbsc);
+			
+		} catch (Exception e) {
+			LOGGER.error("", e);
+			res.setCode(FAIL);
+			res.setMsg(e.getMessage());
+		}
+		
+		return res;
 	}
 
 }

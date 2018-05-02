@@ -21,7 +21,7 @@ var capacity = {
 						subtext: model.totalStr
 					},
 					tooltip : {
-						formatter: "{b} <br/>{a} : {c}%"
+						formatter: "{b} "+model.totalStr+"<br/>{a} : {c}%"
 					},
 					toolbox: {
 						feature: {
@@ -35,7 +35,7 @@ var capacity = {
 					},
 					series: [
 						{
-							name: '已使用',
+							name: '已使用 '+model.usedStr,
 							type: 'gauge',
 							detail: {formatter:'{value}%'},
 							data: [{value: parseFloat(model.usedPercent).toFixed(2), name: '物理内存'}]

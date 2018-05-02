@@ -1,6 +1,8 @@
 package org.shersfy.jwatcher.controller;
 
 import javax.annotation.Resource;
+
+import org.apache.commons.lang.StringUtils;
 import org.shersfy.jwatcher.beans.Result;
 import org.shersfy.jwatcher.service.SystemInfoService;
 import org.springframework.stereotype.Controller;
@@ -24,6 +26,20 @@ public class JWatcherController extends BaseController{
 		model.put("memo", systemInfoService.getMemory());
 		model.put("cpu", systemInfoService.getCpuInfo());
 		res.setModel(model);
+		return res;
+	}
+	
+	@RequestMapping("/config")
+	@ResponseBody
+	public Result config(String jmxRmiUri){
+		jmxRmiUri = StringUtils.isBlank(jmxRmiUri)?"localhost":jmxRmiUri;
+		Result res = systemInfoService.getJmxConnector(jmxRmiUri);
+		if(res.getCode()!=SUCESS){
+			return res;
+		}
+		
+		SystemInfoService.config.setJmxRmiUri(jmxRmiUri);
+		res.setModel(SystemInfoService.config);
 		return res;
 	}
 

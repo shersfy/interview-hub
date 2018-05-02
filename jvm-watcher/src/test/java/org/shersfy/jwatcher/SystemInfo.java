@@ -1,13 +1,25 @@
 package org.shersfy.jwatcher;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryPoolMXBean;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import javax.management.MBeanInfo;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
 
 import org.hyperic.sigar.CpuInfo;
 import org.hyperic.sigar.CpuPerc;
@@ -22,6 +34,7 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.hyperic.sigar.Swap;
 import org.hyperic.sigar.Who;
+import org.shersfy.jwatcher.utils.FileUtil;
 
 import sun.jvmstat.monitor.MonitoredHost;
 import sun.jvmstat.monitor.MonitoredVm;
@@ -241,14 +254,14 @@ public class SystemInfo {
 			System.out.println("盘符类型名:    " + fs.getTypeName());
 			// 文件系统类型
 			System.out.println("盘符文件系统类型:    " + fs.getType());
-			FileSystemUsage usage = null;
-			usage = sigar.getFileSystemUsage(fs.getDirName());
+			
 			switch (fs.getType()) {
 			case 0: // TYPE_UNKNOWN ：未知
 				break;
 			case 1: // TYPE_NONE
 				break;
 			case 2: // TYPE_LOCAL_DISK : 本地硬盘
+				FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
 				// 文件系统总大小
 				System.out.println(fs.getDevName() + "总大小:    " + usage.getTotal() + "KB");
 				// 文件系统剩余大小
@@ -260,6 +273,8 @@ public class SystemInfo {
 				double usePercent = usage.getUsePercent() * 100D;
 				// 文件系统资源的利用率
 				System.out.println(fs.getDevName() + "资源的利用率:    " + usePercent + "%");
+				System.out.println(fs.getDevName() + "读出：    " + usage.getDiskReads());
+				System.out.println(fs.getDevName() + "写入：    " + usage.getDiskWrites());
 				break;
 			case 3:// TYPE_NETWORK ：网络
 				break;
@@ -270,8 +285,6 @@ public class SystemInfo {
 			case 6:// TYPE_SWAP ：页面交换
 				break;
 			}
-			System.out.println(fs.getDevName() + "读出：    " + usage.getDiskReads());
-			System.out.println(fs.getDevName() + "写入：    " + usage.getDiskWrites());
 		}
 		return;
 	}
@@ -337,5 +350,34 @@ public class SystemInfo {
             System.out.println("memo: "+sigar.getProcMem(pid));
             System.out.println("state: "+sigar.getProcStat());
         }
+        
+        System.out.println("======================");
+        String url = "service:jmx:rmi:///jndi/rmi://10.100.124.201:29090/jmxrmi";
+    	JMXServiceURL serviceURL = new JMXServiceURL(url);
+		JMXConnector connector = JMXConnectorFactory.connect(serviceURL);
+		MBeanServerConnection conn = connector.getMBeanServerConnection();
+		MemoryMXBean mx = ManagementFactory.getPlatformMXBean(conn, MemoryMXBean.class);
+		System.out.println("heap:"+FileUtil.getLengthWithUnit(mx.getHeapMemoryUsage().getMax()));
+		System.out.println("non-heap:"+FileUtil.getLengthWithUnit(mx.getNonHeapMemoryUsage().getMax()));
+		List<MemoryPoolMXBean> pools = ManagementFactory.getPlatformMXBeans(MemoryPoolMXBean.class);
+		pools.forEach(pool->{
+			System.out.println("--------pools--------");
+			System.out.println("\tname:"+pool.getName());
+			System.out.println("\ttotal:"+FileUtil.getLengthWithUnit(pool.getUsage().getCommitted()));
+			System.out.println("\tused:"+FileUtil.getLengthWithUnit(pool.getUsage().getUsed()));
+		});
+		
+//		Set<ObjectName> names = conn.queryNames(null, null);
+//		names.forEach(objname->{
+//			System.out.println("objname: "+objname);
+//			try {
+//				MBeanInfo mbean = conn.getMBeanInfo(objname);
+//				Arrays.asList(mbean.getAttributes()).forEach(attr->{
+//					System.out.println("\tattrname:"+attr);
+//				});
+//				
+//			} catch (Exception e) {
+//			}
+//		});
 	}
 }

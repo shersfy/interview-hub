@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" type="text/css" href="libs/jquery-easyui/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="libs/jquery-easyui/themes/icon.css">
+<link rel="stylesheet" type="text/css" href="css/config.css">
+<script type="text/javascript" src="libs/jquery-easyui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+
+</head>
+<body index="5">
+  <div class="easyui-panel" title="系统配置" style="width:100%; padding-left: 20px;padding-right: 20%; padding-top: 20px;">
+      <form id="ff" method="post" th:action="|${basePath}/watch/config|">
+          <div style="margin-bottom:20px">
+          	JMX RMI URI(远程JMX连接URL), "localhost" 表示本机<br/>
+              <input class="easyui-textbox" name="jmxRmiUri" style="width:50%" data-options="label:''" th:value="${config.jmxRmiUri}">
+          </div>
+      </form>
+      <div style="text-align:left;padding:5px 0">
+          <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm()" style="width:80px">保存</a>
+          <a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm()" style="width:80px">清除</a>
+      </div>
+  </div>
+</body>
+</html>
