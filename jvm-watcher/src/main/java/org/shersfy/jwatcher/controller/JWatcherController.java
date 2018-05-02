@@ -34,7 +34,6 @@ public class JWatcherController extends BaseController{
 	@ResponseBody
 	public Result config(String jmxRmiUri){
 		jmxRmiUri = StringUtils.isBlank(jmxRmiUri)?"localhost":jmxRmiUri;
-		
 		Result res = new Result();
 		res.setModel(jmxRmiUri);
 		return res;
