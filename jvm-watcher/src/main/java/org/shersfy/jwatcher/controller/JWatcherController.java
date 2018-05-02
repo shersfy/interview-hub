@@ -1,7 +1,9 @@
 package org.shersfy.jwatcher.controller;
 
 import javax.annotation.Resource;
+import javax.management.remote.JMXConnector;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.shersfy.jwatcher.beans.Result;
 import org.shersfy.jwatcher.service.SystemInfoService;
@@ -37,6 +39,9 @@ public class JWatcherController extends BaseController{
 		if(res.getCode()!=SUCESS){
 			return res;
 		}
+		
+		JMXConnector connector = (JMXConnector) res.getModel();
+		IOUtils.closeQuietly(connector);
 		
 		SystemInfoService.config.setJmxRmiUri(jmxRmiUri);
 		res.setModel(SystemInfoService.config);
