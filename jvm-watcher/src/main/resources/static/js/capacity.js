@@ -38,7 +38,7 @@ var capacity = {
 							name: '已使用 '+model.usedStr,
 							type: 'gauge',
 							detail: {formatter:'{value}%'},
-							data: [{value: parseFloat(model.usedPercent).toFixed(2), name: '物理内存'}]
+							data: [{value: parseFloat(model.usedPercent*100).toFixed(2), name: '物理内存'}]
 						}
 						]
 			};

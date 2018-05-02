@@ -1,28 +1,23 @@
 package org.shersfy.jwatcher.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
-import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
-import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import javax.swing.filechooser.FileSystemView;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hyperic.sigar.CpuInfo;
 import org.hyperic.sigar.CpuPerc;
@@ -32,7 +27,6 @@ import org.hyperic.sigar.Mem;
 import org.hyperic.sigar.OperatingSystem;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
-import org.shersfy.jwatcher.beans.Result;
 import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.Config;
 import org.shersfy.jwatcher.entity.DiskInfo;
@@ -51,57 +45,27 @@ import sun.jvmstat.monitor.VmIdentifier;
 @Component
 public class SystemInfoService extends BaseService{
 
-	public static Config config;
+	public static Config conf;
 	
 	@PostConstruct
 	private void init(){
-		config = new Config("localhost");
+		LOGGER.info("=========init starting===========");
+		conf = new Config("localhost");
+		conf.setSigar(new Sigar());
+		conf.setSystemInfo(new SystemInfo());
+		conf.setCpu(new CPUInfo());
+		conf.setRamMemo(new Memory());
+		conf.setJvm(new JVMInfo());
+		LOGGER.info("=========init finished===========");
 	}
 
 	public SystemInfo getSystemInfo(){
 
-		SystemInfo info = new SystemInfo();
-		Result res = getJmxConnector(config.getJmxRmiUri());
-		if(!isJMXLocalConnector() && res.getCode()==SUCESS){
-			JMXConnector connector = (JMXConnector) res.getModel();
-			try {
-				MBeanServerConnection conn = connector.getMBeanServerConnection();
-				// Server OS Core
-				String url = config.getJmxRmiUri();
-				String str = "jndi/";
-				if(url.contains(str)){
-					url = url.substring(url.indexOf(str)+str.length());
-					url = url.replace("rmi://", "http://");
-				}
-				URL jmxUrl = new URL(url);
-				OperatingSystemMXBean mxOS = ManagementFactory.getPlatformMXBean(conn, OperatingSystemMXBean.class);
-				info.setOs(String.format("%s %s %s", 
-						mxOS.getName(),
-						mxOS.getVersion(),
-						mxOS.getArch()));
-				info.setName(mxOS.getName());
-				info.setHost(jmxUrl.getHost());
-				info.setIp(jmxUrl.getHost());
-				
-				// CPU
-				info.setCpu(String.valueOf(mxOS.getAvailableProcessors()));
-				
-				// memo
-				MemoryMXBean mxMemo = ManagementFactory.getPlatformMXBean(conn, MemoryMXBean.class);
-				long init = mxMemo.getHeapMemoryUsage().getInit() + mxMemo.getNonHeapMemoryUsage().getInit();
-				long max  = mxMemo.getHeapMemoryUsage().getMax() + mxMemo.getNonHeapMemoryUsage().getCommitted();
-				info.setRam(FileUtil.getLengthWithUnit(max>init?max:init));
-			} catch (Exception e) {
-				LOGGER.error("", e);
-			} finally {
-				IOUtils.closeQuietly(connector);
-			}
-			return info;
-		}
+		SystemInfo info = conf.getSystemInfo();
 		Map<String, String> env = System.getenv();
 		Properties props = System.getProperties();
-		OperatingSystem os = OperatingSystem.getInstance();
-		Sigar sigar = new Sigar();
+		OperatingSystem osBean = OperatingSystem.getInstance();
+		Sigar sigar = conf.getSigar();
 
 		InetAddress addr = null;
 		try {
@@ -120,13 +84,13 @@ public class SystemInfoService extends BaseService{
 		}
 
 		// OS
-		String sep = " ";
-		StringBuffer osTmp = new StringBuffer(0);
-		osTmp.append(props.getProperty("os.name")).append(sep);
-		osTmp.append(os.getArch()).append(sep);
-		osTmp.append(os.getDataModel()).append(sep);
-		osTmp.append(os.getVersion());
-		info.setOs(osTmp.toString());
+		String os = String.format("%s %s %s %s", 
+				props.getProperty("os.name"),
+				osBean.getArch(),
+				osBean.getDataModel(),
+				osBean.getVersion());
+		
+		info.setOs(os);
 
 		// CPU
 		CpuInfo[] cpus = null;
@@ -161,6 +125,7 @@ public class SystemInfoService extends BaseService{
 		}
 
 		if(fslist!=null){
+			info.getDisks().clear();
 			for(FileSystem fs :fslist){
 				File root = new File(fs.getDirName());
 				FileSystemUsage usage = null;
@@ -202,37 +167,14 @@ public class SystemInfoService extends BaseService{
 	
 	public JVMInfo getJvmInfo(){
 		
-		JVMInfo jvm = new JVMInfo();
 		Properties props = System.getProperties();
 		MemoryMXBean mx  = ManagementFactory.getMemoryMXBean();
 		MemoryUsage heap = mx.getHeapMemoryUsage();
 		MemoryUsage nonheap = mx.getNonHeapMemoryUsage();
 		
-		jvm.setProcessors(Runtime.getRuntime().availableProcessors());
+		JVMInfo jvm = conf.getJvm();
 		
-		Result res = getJmxConnector(config.getJmxRmiUri());
-		if(!isJMXLocalConnector() && res.getCode()==SUCESS){
-			JMXConnector connector = (JMXConnector) res.getModel();
-			try {
-				MBeanServerConnection conn = connector.getMBeanServerConnection();
-				RuntimeMXBean remoteRt = ManagementFactory.getPlatformMXBean(conn, RuntimeMXBean.class);
-				props.clear();
-				props.putAll(remoteRt.getSystemProperties());
-				
-				MemoryMXBean remoteMemo = ManagementFactory.getPlatformMXBean(conn, MemoryMXBean.class);
-				heap = remoteMemo.getHeapMemoryUsage();
-				nonheap = remoteMemo.getNonHeapMemoryUsage();
-				
-				OperatingSystemMXBean remoteOS = ManagementFactory.getPlatformMXBean(conn, OperatingSystemMXBean.class);
-				jvm.setProcessors(remoteOS.getAvailableProcessors());
-				
-			} catch (Exception e) {
-				LOGGER.error("", e);
-				return new JVMInfo();
-			} finally {
-				IOUtils.closeQuietly(connector);
-			}
-		}
+		jvm.setProcessors(Runtime.getRuntime().availableProcessors());
 		
 		jvm.setJavaVersion(String.format("%s Build %s", 
 				props.getProperty("java.version"),
@@ -252,14 +194,14 @@ public class SystemInfoService extends BaseService{
 			jvm.setMaxMemory(jvm.getInitMemory());
 		}
 		
-		
 		return jvm;
 	}
 	
 	public List<JVMProcess> getLocalJvmProcesses(){
 		
-		Sigar sigar = new Sigar();
-		List<JVMProcess> list = new ArrayList<>();
+		Sigar sigar = conf.getSigar();
+		List<JVMProcess> list = conf.getLocalJvmProcesses();
+		list.clear();
 		try {
 			MonitoredHost local = MonitoredHost.getMonitoredHost("localhost");
 			// 取得所有在活动的虚拟机集合
@@ -282,8 +224,8 @@ public class SystemInfoService extends BaseService{
 	}
 	
 	public Memory getMemory(){
-		Sigar sigar = new Sigar();
-		Memory memo = new Memory();
+		Sigar sigar = conf.getSigar();
+		Memory memo = conf.getRamMemo();
 		// RAM
 		Mem mem = null;
 		try {
@@ -294,54 +236,51 @@ public class SystemInfoService extends BaseService{
 		long ram = mem==null?0:mem.getRam() * 1024 * 1024;
 		memo.setTotal(ram);
 		memo.setUsed(mem.getUsed());
-		memo.setUsedPercent((double)mem.getUsed()/mem.getTotal()*100);
+		memo.setUsedPercent((double)mem.getUsed()/mem.getTotal());
 		
 		return memo;
 	}
 	
 	public CPUInfo getCpuInfo(){
-		Sigar sigar = new Sigar();
-		CPUInfo cpu = new CPUInfo();
-		CpuPerc[] cpArr  = null;
-		CpuInfo[] cpuArr = null;
+		Sigar sigar = conf.getSigar();
+		CPUInfo cpu = conf.getCpu();
+		
+		CpuInfo[] cpuInfos = null;
+		CpuPerc[] cpuPercs = null;
 		try {
-			cpuArr = sigar.getCpuInfoList();
+			cpuInfos = sigar.getCpuInfoList();
+			cpuPercs = sigar.getCpuPercList();
 		} catch (SigarException e) {
 			LOGGER.error("", e);
 		}
-
-		try {
-			cpArr = sigar.getCpuPercList();
-			cpuArr = sigar.getCpuInfoList();
-		} catch (SigarException e) {
-			LOGGER.error("", e);
-		}
-		if(cpArr!=null){
+		if(cpuPercs!=null){
 			double user = 0;
 			double sys  = 0;
 			double wait = 0;
 			double nice = 0;
 			double used = 0;
 			double idle = 0;
-			for(CpuPerc c :cpArr){
-				user += c.getUser();
-				sys  += c.getSys();
-				wait += c.getWait();
-				nice += c.getNice();
-				used += c.getCombined();
-				idle += c.getIdle();
+			for(CpuPerc perc :cpuPercs){
+				user += perc.getUser();
+				sys  += perc.getSys();
+				wait += perc.getWait();
+				nice += perc.getNice();
+				used += perc.getCombined();
+				idle += perc.getIdle();
 			}
-			cpu.setUser(user/cpArr.length);
-			cpu.setSystem(sys/cpArr.length);
-			cpu.setWait(wait/cpArr.length);
-			cpu.setNice(nice/cpArr.length);
-			cpu.setUsed(used/cpArr.length);
-			cpu.setIdle(idle/cpArr.length);
+			
+			int size = cpuPercs.length;
+			cpu.setUser(user/size);
+			cpu.setSystem(sys/size);
+			cpu.setWait(wait/size);
+			cpu.setNice(nice/size);
+			cpu.setUsed(used/size);
+			cpu.setIdle(idle/size);
 			
 		}
 		
-		if(cpuArr!=null&&cpuArr.length!=0){
-			cpu.setName(String.format("%s %s", cpuArr[0].getVendor(), cpuArr[0].getModel()));
+		if(cpuInfos!=null&&cpuInfos.length!=0){
+			cpu.setName(String.format("%s %s", cpuInfos[0].getVendor(), cpuInfos[0].getModel()));
 		}
 		
 		return cpu;
@@ -352,31 +291,18 @@ public class SystemInfoService extends BaseService{
 	 * 
 	 * @param jmxRmiUri 连接串
 	 * @return 返回 model: code=200, 返回MBeanServerConnection 对象或null(本地时)
+	 * @throws IOException 
 	 */
-	public Result getJmxConnector(String jmxRmiUri){
-		Result res = new Result();
+	public JMXConnector getJmxConnector(String jmxRmiUri) throws IOException{
+
 		if(StringUtils.isBlank(jmxRmiUri) || "localhost".equalsIgnoreCase(jmxRmiUri)){
-			res.setModel(new JMXLocalConnector());
-			return res;
+			return conf.getLocalDefault();
 		}
-		
-		try {
-			
-			JMXServiceURL serviceURL = new JMXServiceURL(jmxRmiUri);
-			JMXConnector connector   = JMXConnectorFactory.connect(serviceURL);
-			res.setModel(connector);
-			
-		} catch (Exception e) {
-			LOGGER.error("", e);
-			res.setCode(FAIL);
-			res.setMsg(e.getMessage());
-		}
-		
-		return res;
+
+		JMXServiceURL serviceURL = new JMXServiceURL(jmxRmiUri);
+		JMXConnector connector   = JMXConnectorFactory.connect(serviceURL);
+
+		return connector;
 	}
 	
-	public boolean isJMXLocalConnector(){
-		return "localhost".equalsIgnoreCase(config.getJmxRmiUri());
-	}
-
 }
