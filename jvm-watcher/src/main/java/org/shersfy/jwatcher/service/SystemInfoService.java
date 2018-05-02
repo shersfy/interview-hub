@@ -50,7 +50,7 @@ public class SystemInfoService extends BaseService{
 	@PostConstruct
 	private void init(){
 		LOGGER.info("=========init starting===========");
-		conf = new Config("localhost");
+		conf = new Config();
 		conf.setSigar(new Sigar());
 		conf.setSystemInfo(new SystemInfo());
 		conf.setCpu(new CPUInfo());

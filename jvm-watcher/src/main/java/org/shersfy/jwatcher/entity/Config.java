@@ -15,7 +15,6 @@ public class Config extends BaseEntity{
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private String jmxRmiUri;
 	private Sigar sigar;
 	private SystemInfo systemInfo;
 	private Memory ramMemo;
@@ -28,15 +27,6 @@ public class Config extends BaseEntity{
 		super();
 		localDefault = new JMXLocalConnector();
 		localJvmProcesses = new ArrayList<>();
-	}
-	
-	public Config(String jmxRmiUri) {
-		this();
-		this.jmxRmiUri = jmxRmiUri;
-	}
-
-	public String getJmxRmiUri() {
-		return jmxRmiUri;
 	}
 
 	public Sigar getSigar() {
@@ -65,10 +55,6 @@ public class Config extends BaseEntity{
 
 	public JMXConnector getLocalDefault() {
 		return localDefault;
-	}
-
-	public void setJmxRmiUri(String jmxRmiUri) {
-		this.jmxRmiUri = jmxRmiUri;
 	}
 
 	public void setSigar(Sigar sigar) {

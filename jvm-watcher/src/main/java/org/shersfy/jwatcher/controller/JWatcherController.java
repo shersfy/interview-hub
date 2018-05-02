@@ -1,11 +1,8 @@
 package org.shersfy.jwatcher.controller;
 
-import java.io.IOException;
 
 import javax.annotation.Resource;
-import javax.management.remote.JMXConnector;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.shersfy.jwatcher.beans.Result;
 import org.shersfy.jwatcher.service.SystemInfoService;
@@ -39,19 +36,7 @@ public class JWatcherController extends BaseController{
 		jmxRmiUri = StringUtils.isBlank(jmxRmiUri)?"localhost":jmxRmiUri;
 		
 		Result res = new Result();
-		JMXConnector connector = null;
-		try {
-			connector = systemInfoService.getJmxConnector(jmxRmiUri);
-		} catch (IOException e) {
-			res.setCode(FAIL);
-			res.setMsg(e.getMessage());
-			return res;
-		} finally {
-			IOUtils.closeQuietly(connector);
-		}
-		
-		SystemInfoService.conf.setJmxRmiUri(jmxRmiUri);
-		res.setModel(SystemInfoService.conf);
+		res.setModel(jmxRmiUri);
 		return res;
 	}
 
