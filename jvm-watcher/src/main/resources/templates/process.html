@@ -28,7 +28,7 @@
 	            <td>可执行程序</td>
 	        </tr>
 	        <tr th:each="process: ${processes}">
-	            <td width="10%"><a target="_blank" href="" th:text="${process.pid}"></a></td>
+	            <td width="10%"><a target="_blank" th:href="|${basePath}/process/${process.pid}|" th:text="${process.pid}"></a></td>
 	            <td width="30%" th:text="${process.name}"></td>
 	            <td th:text="${process.exePath}"></td>
 	        </tr>

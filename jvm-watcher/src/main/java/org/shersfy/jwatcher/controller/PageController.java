@@ -4,6 +4,7 @@ import javax.annotation.Resource;
 
 import org.shersfy.jwatcher.service.SystemInfoService;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
@@ -42,6 +43,14 @@ public class PageController extends BaseController {
 	public ModelAndView process(){
 		ModelAndView mv = new ModelAndView("process");
 		mv.addObject("processes", systemInfoService.getLocalJvmProcesses());
+		return mv;
+	}
+	
+	@RequestMapping("/process/{pid}")
+	@ResponseBody
+	public ModelAndView processWatcher(@PathVariable("pid") long pid){
+		ModelAndView mv = new ModelAndView("pwatcher");
+		mv.addObject("process", systemInfoService.findByPid(pid));
 		return mv;
 	}
 

@@ -7,6 +7,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -196,7 +197,7 @@ public class SystemInfoService extends BaseService{
 	public List<JVMProcess> getLocalJvmProcesses(){
 		
 		Sigar sigar = conf.getSigar();
-		List<JVMProcess> list = conf.getLocalJvmProcesses();
+		List<JVMProcess> list = new ArrayList<>();
 		list.clear();
 		try {
 			MonitoredHost local = MonitoredHost.getMonitoredHost("localhost");
@@ -218,6 +219,12 @@ public class SystemInfoService extends BaseService{
 		}
 		return list;
 	}
+	
+	public JVMProcess findByPid(long pid){
+		JVMProcess process = new JVMProcess();
+		
+		return process;
+	} 
 	
 	public Memory getMemory(){
 		Sigar sigar = conf.getSigar();

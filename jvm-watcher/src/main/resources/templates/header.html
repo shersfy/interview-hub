@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8" />
-<link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" th:href="|${basePath}/css/header.css|">
 <script th:inline="javascript">
     var basePath = [[${basePath}]];
 </script>
@@ -18,7 +18,7 @@
 			<div class='sideline'></div>
 		</ul>
 	</div>
-	<script type="text/javascript" charset="utf8" src="js/nav.js"></script>
-	<script type="text/javascript" charset="utf8" src="js/header.js"></script>
+	<script type="text/javascript" charset="utf8" th:src="|${basePath}/js/nav.js|"></script>
+	<script type="text/javascript" charset="utf8" th:src="|${basePath}/js/header.js|"></script>
 </body>
 </html>
