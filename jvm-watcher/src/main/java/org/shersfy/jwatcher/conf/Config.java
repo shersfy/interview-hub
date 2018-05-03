@@ -1,11 +1,15 @@
 package org.shersfy.jwatcher.conf;
 
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.management.remote.JMXConnector;
 
 import org.hyperic.sigar.Sigar;
+import org.shersfy.jwatcher.connector.JMXLocalConnector;
+import org.shersfy.jwatcher.connector.JVMConnector;
 import org.shersfy.jwatcher.entity.BaseEntity;
-import org.shersfy.jwatcher.service.JMXLocalConnector;
 
 public class Config extends BaseEntity{
 	
@@ -16,10 +20,12 @@ public class Config extends BaseEntity{
 	
 	private Sigar sigar;
 	private JMXConnector localDefault;
+	private Map<String, JVMConnector> cache;
 	
 	public Config(){
 		super();
 		localDefault = new JMXLocalConnector();
+		cache = new ConcurrentHashMap<>();
 	}
 
 	public Sigar getSigar() {
@@ -37,6 +43,14 @@ public class Config extends BaseEntity{
 
 	public void setLocalDefault(JMXConnector localDefault) {
 		this.localDefault = localDefault;
+	}
+
+	public Map<String, JVMConnector> getCache() {
+		return cache;
+	}
+
+	public void setCache(Map<String, JVMConnector> cache) {
+		this.cache = cache;
 	}
 
 }

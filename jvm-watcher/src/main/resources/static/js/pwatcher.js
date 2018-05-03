@@ -8,6 +8,9 @@ $(function(){
 //	if(header.intervalId<1){
 //	header.intervalId = capacity.flush(2000);
 //	}
+	window.onbeforeunload= function(event) {
+		return "testss";
+	}
 })
 
 var watcher = {

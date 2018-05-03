@@ -1,4 +1,4 @@
-package org.shersfy.jwatcher.service;
+package org.shersfy.jwatcher.connector;
 
 import java.io.IOException;
 import java.util.Map;

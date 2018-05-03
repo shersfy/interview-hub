@@ -1,7 +1,10 @@
-.echarts{
+.echarts, .echarts-long{
 	margin: 10px;
 	width: 455px;
 	height: 400px;
 	background-color: #FFF;
 	display: inline-block;
 }
+ .echarts-long {
+ 	width: 900px;
+ }
