@@ -27,8 +27,8 @@ import org.hyperic.sigar.Mem;
 import org.hyperic.sigar.OperatingSystem;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
+import org.shersfy.jwatcher.conf.Config;
 import org.shersfy.jwatcher.entity.CPUInfo;
-import org.shersfy.jwatcher.entity.Config;
 import org.shersfy.jwatcher.entity.DiskInfo;
 import org.shersfy.jwatcher.entity.JVMInfo;
 import org.shersfy.jwatcher.entity.JVMProcess;
@@ -52,16 +52,12 @@ public class SystemInfoService extends BaseService{
 		LOGGER.info("=========init starting===========");
 		conf = new Config();
 		conf.setSigar(new Sigar());
-		conf.setSystemInfo(new SystemInfo());
-		conf.setCpu(new CPUInfo());
-		conf.setRamMemo(new Memory());
-		conf.setJvm(new JVMInfo());
 		LOGGER.info("=========init finished===========");
 	}
 
 	public SystemInfo getSystemInfo(){
 
-		SystemInfo info = conf.getSystemInfo();
+		SystemInfo info = new SystemInfo();
 		Map<String, String> env = System.getenv();
 		Properties props = System.getProperties();
 		OperatingSystem osBean = OperatingSystem.getInstance();
@@ -172,7 +168,7 @@ public class SystemInfoService extends BaseService{
 		MemoryUsage heap = mx.getHeapMemoryUsage();
 		MemoryUsage nonheap = mx.getNonHeapMemoryUsage();
 		
-		JVMInfo jvm = conf.getJvm();
+		JVMInfo jvm = new JVMInfo();
 		
 		jvm.setProcessors(Runtime.getRuntime().availableProcessors());
 		
@@ -225,7 +221,7 @@ public class SystemInfoService extends BaseService{
 	
 	public Memory getMemory(){
 		Sigar sigar = conf.getSigar();
-		Memory memo = conf.getRamMemo();
+		Memory memo = new Memory();
 		// RAM
 		Mem mem = null;
 		try {
@@ -243,7 +239,7 @@ public class SystemInfoService extends BaseService{
 	
 	public CPUInfo getCpuInfo(){
 		Sigar sigar = conf.getSigar();
-		CPUInfo cpu = conf.getCpu();
+		CPUInfo cpu = new CPUInfo();
 		
 		CpuInfo[] cpuInfos = null;
 		CpuPerc[] cpuPercs = null;
