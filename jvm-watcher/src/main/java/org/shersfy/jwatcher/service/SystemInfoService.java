@@ -29,6 +29,7 @@ import org.hyperic.sigar.OperatingSystem;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.shersfy.jwatcher.conf.Config;
+import org.shersfy.jwatcher.connector.JVMConnector;
 import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.DiskInfo;
 import org.shersfy.jwatcher.entity.JVMInfo;
@@ -220,10 +221,9 @@ public class SystemInfoService extends BaseService{
 		return list;
 	}
 	
-	public JVMProcess findByPid(long pid){
-		JVMProcess process = new JVMProcess();
-		
-		return process;
+	public JVMConnector getConnector(String url) throws IOException{
+		JVMConnector connector = JVMConnector.getConnector(url);
+		return connector;
 	} 
 	
 	public Memory getMemory(){

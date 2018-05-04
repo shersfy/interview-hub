@@ -1,6 +1,5 @@
 package org.shersfy.jwatcher.controller;
 
-
 import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;

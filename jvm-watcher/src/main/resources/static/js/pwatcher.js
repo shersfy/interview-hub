@@ -9,7 +9,7 @@ $(function(){
 //	header.intervalId = capacity.flush(2000);
 //	}
 	window.onbeforeunload= function(event) {
-		return "testss";
+		return "";
 	}
 })
 

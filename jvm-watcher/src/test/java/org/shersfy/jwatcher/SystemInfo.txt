@@ -1,3 +1,14 @@
+heap:
+	--PS Eden Space
+	--PS Survivor Space
+	--PS Old Gen
+
+non-heap:
+	--Code Cache
+	--Compressed Class Space
+	--Metaspace
+
+================================
 用户名:    shersfy
 计算机名:    PC-20170327ACWV
 计算机域名:    PC-20170327ACWV

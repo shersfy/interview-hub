@@ -11,6 +11,10 @@ import javax.management.remote.JMXConnector;
 import javax.security.auth.Subject;
 
 public class JMXLocalConnector implements JMXConnector{
+	
+	public static String getLocalUrl(long pid){
+		return String.format("localhost/%s", pid);
+	}
 
 	@Override
 	public void connect() throws IOException {

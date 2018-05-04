@@ -23,6 +23,6 @@ var process = {
 			});
 		},
 		watchProcess: function(pid){
-			window.open(basePath + "/process/"+pid);
+			window.open(basePath + "/process/local/"+pid);
 		}
 }

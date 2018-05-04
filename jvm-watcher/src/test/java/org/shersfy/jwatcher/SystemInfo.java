@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -353,16 +354,25 @@ public class SystemInfo {
     	JMXServiceURL serviceURL = new JMXServiceURL(url);
 		JMXConnector connector = JMXConnectorFactory.connect(serviceURL);
 		MBeanServerConnection conn = connector.getMBeanServerConnection();
+//		MemoryMXBean mx = ManagementFactory.getMemoryMXBean();
 		MemoryMXBean mx = ManagementFactory.getPlatformMXBean(conn, MemoryMXBean.class);
-		System.out.println("heap:"+FileUtil.getLengthWithUnit(mx.getHeapMemoryUsage().getMax()));
-		System.out.println("non-heap:"+FileUtil.getLengthWithUnit(mx.getNonHeapMemoryUsage().getMax()));
-		List<MemoryPoolMXBean> pools = ManagementFactory.getPlatformMXBeans(MemoryPoolMXBean.class);
+		System.out.println("heap:"+FileUtil.getLengthWithUnit(mx.getHeapMemoryUsage().getCommitted()));
+		System.out.println("heap-used:"+FileUtil.getLengthWithUnit(mx.getHeapMemoryUsage().getUsed()));
+		System.out.println("non-heap:"+FileUtil.getLengthWithUnit(mx.getNonHeapMemoryUsage().getCommitted()));
+		System.out.println("non-heap-used:"+FileUtil.getLengthWithUnit(mx.getNonHeapMemoryUsage().getUsed()));
+		List<MemoryPoolMXBean> pools = ManagementFactory.getPlatformMXBeans(conn, MemoryPoolMXBean.class);
 		pools.forEach(pool->{
 			System.out.println("--------pools--------");
 			System.out.println("\tname:"+pool.getName());
 			System.out.println("\ttotal:"+FileUtil.getLengthWithUnit(pool.getUsage().getCommitted()));
+			System.out.println("\tinit:"+FileUtil.getLengthWithUnit(pool.getUsage().getInit()));
 			System.out.println("\tused:"+FileUtil.getLengthWithUnit(pool.getUsage().getUsed()));
 		});
+		
+//		ThreadMXBean thread = ManagementFactory.getThreadMXBean();
+//		System.out.println("\tthread total:"+FileUtil.getLengthWithUnit(thread.));
+//		System.out.println("\tthread init:"+FileUtil.getLengthWithUnit(pool.getUsage().getInit()));
+//		System.out.println("\tthread used:"+FileUtil.getLengthWithUnit(pool.getUsage().getUsed()));
 		
 //		Set<ObjectName> names = conn.queryNames(null, null);
 //		names.forEach(objname->{
