@@ -3,6 +3,7 @@ package org.shersfy.jwatcher.conf;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 import javax.management.remote.JMXConnector;
 
@@ -21,6 +22,7 @@ public class Config extends BaseEntity{
 	private Sigar sigar;
 	private JMXConnector localDefault;
 	private Map<String, JVMConnector> cache;
+	private ExecutorService jvmWatcherThreadsPool;
 	
 	public Config(){
 		super();
@@ -51,6 +53,14 @@ public class Config extends BaseEntity{
 
 	public void setCache(Map<String, JVMConnector> cache) {
 		this.cache = cache;
+	}
+
+	public ExecutorService getJvmWatcherThreadsPool() {
+		return jvmWatcherThreadsPool;
+	}
+
+	public void setJvmWatcherThreadsPool(ExecutorService jvmWatcherThreadsPool) {
+		this.jvmWatcherThreadsPool = jvmWatcherThreadsPool;
 	}
 
 }

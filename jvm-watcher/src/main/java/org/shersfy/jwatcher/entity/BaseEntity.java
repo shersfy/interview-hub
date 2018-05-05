@@ -13,10 +13,6 @@ public class BaseEntity implements Serializable{
 	
 	private String name;
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
 	public String getName() {
 		return name;
 	}

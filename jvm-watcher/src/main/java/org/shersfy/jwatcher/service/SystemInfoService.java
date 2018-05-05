@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
 import javax.management.remote.JMXConnector;
@@ -30,13 +31,16 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.shersfy.jwatcher.conf.Config;
 import org.shersfy.jwatcher.connector.JVMConnector;
+import org.shersfy.jwatcher.connector.WatcherCallback;
 import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.DiskInfo;
 import org.shersfy.jwatcher.entity.JVMInfo;
+import org.shersfy.jwatcher.entity.JVMMemoSegment;
 import org.shersfy.jwatcher.entity.JVMProcess;
 import org.shersfy.jwatcher.entity.Memory;
 import org.shersfy.jwatcher.entity.SystemInfo;
 import org.shersfy.jwatcher.utils.FileUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import sun.jvmstat.monitor.MonitoredHost;
@@ -49,11 +53,15 @@ public class SystemInfoService extends BaseService{
 
 	public static Config conf;
 	
+	@Value("${jmx.watcher.threads.pool.size}")
+	private int jvmWatcherThreadsPoolSize;
+	
 	@PostConstruct
 	private void init(){
 		LOGGER.info("=========init starting===========");
 		conf = new Config();
 		conf.setSigar(new Sigar());
+		conf.setJvmWatcherThreadsPool(Executors.newFixedThreadPool(jvmWatcherThreadsPoolSize));
 		LOGGER.info("=========init finished===========");
 	}
 
@@ -225,6 +233,67 @@ public class SystemInfoService extends BaseService{
 		JVMConnector connector = JVMConnector.getConnector(url);
 		return connector;
 	} 
+	
+	/**
+	 * 启动监控jvm进程
+	 * 
+	 * @param connector jvm连接
+	 */
+	public void startWatcher(JVMConnector connector){
+		if(connector.getEnable().get()){
+			return;
+		}
+		if(connector!=null){
+			WatcherCallback callback = new WatcherCallback() {
+				
+				@Override
+				public void callbackWatchMemo(String url, JVMMemoSegment segment) {
+					if(this.getException()!=null){
+						LOGGER.error("", this.getException());
+						return;
+					}
+					
+					LOGGER.info("jvm process {}, watch begin ...", url);
+					segment.getHeapPools().forEach(heap->{
+						LOGGER.info("heap {}, init {}, max {}, committed {}, used {}", 
+								heap.getName(), 
+								FileUtil.getLengthWithUnit(heap.getInit()),
+								FileUtil.getLengthWithUnit(heap.getMax()),
+								FileUtil.getLengthWithUnit(heap.getCommitted()),
+								FileUtil.getLengthWithUnit(heap.getUsed()));
+					});
+					
+					segment.getNonHeapPools().forEach(non->{
+						LOGGER.info("non-heap {}, init {}, max {}, committed {}, used {}", 
+								non.getName(), 
+								FileUtil.getLengthWithUnit(non.getInit()),
+								FileUtil.getLengthWithUnit(non.getMax()),
+								FileUtil.getLengthWithUnit(non.getCommitted()),
+								FileUtil.getLengthWithUnit(non.getUsed()));
+					});
+					LOGGER.info("jvm process {}, watch finish", url);
+				}
+			};
+			try {
+				connector.startWatcher(callback);
+				LOGGER.info("jvm process {} started", connector.getUrl());
+			} catch (Exception e) {
+				LOGGER.error("", e);
+			}
+		}
+	}
+	
+	/**
+	 * 停止监控jvm进程
+	 * 
+	 * @param connector jvm连接
+	 */
+	public void stopWatcher(JVMConnector connector){
+		if(connector!=null){
+			connector.stopWatcher();
+			LOGGER.info("jvm process {} stoped", connector.getUrl());
+		}
+	}
 	
 	public Memory getMemory(){
 		Sigar sigar = conf.getSigar();
