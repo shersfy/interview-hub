@@ -33,7 +33,7 @@ var watcher = {
 						dataView : {show: false, readOnly: false},
 						magicType : {show: false, type: ['line', 'bar', 'stack', 'tiled']},
 						restore : {show: false},
-						saveAsImage : {show: true}
+						saveAsImage : {show: true, title: "save"}
 					}
 				},
 				calculable : true,
