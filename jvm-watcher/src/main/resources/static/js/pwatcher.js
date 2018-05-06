@@ -27,12 +27,12 @@ var watcher = {
 					data:subjects
 				},
 				toolbox: {
-					show : false,
+					show : true,
 					feature : {
-						mark : {show: true},
-						dataView : {show: true, readOnly: false},
-						magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-						restore : {show: true},
+						mark : {show: false},
+						dataView : {show: false, readOnly: false},
+						magicType : {show: false, type: ['line', 'bar', 'stack', 'tiled']},
+						restore : {show: false},
 						saveAsImage : {show: true}
 					}
 				},
