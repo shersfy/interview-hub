@@ -56,6 +56,12 @@ public class SystemInfoService extends BaseService{
 	@Value("${jmx.watcher.threads.pool.size}")
 	private int jvmWatcherThreadsPoolSize;
 	
+	@Value("${jmx.watcher.interval}")
+	private long interval;
+	
+	@Value("${jmx.watcher.segment.max}")
+	private int maxSegSize;
+	
 	@PostConstruct
 	private void init(){
 		LOGGER.info("=========init starting===========");
@@ -232,18 +238,31 @@ public class SystemInfoService extends BaseService{
 	public JVMConnector getConnector(String url) throws IOException{
 		JVMConnector connector = JVMConnector.getConnector(url);
 		return connector;
-	} 
+	}
+	
+	public JVMMemoSegment[] getData(String url) throws IOException{
+		JVMConnector connector = conf.getCache().get(url);
+		if(connector==null || !connector.getEnable().get()){
+			throw new IOException("JVMConnector is not created or not started: "+url);
+		}
+		
+		JVMMemoSegment[] data = connector.getMemoSegments().toArray(new JVMMemoSegment[connector.getMemoSegments().size()]);
+		connector.updatetime();
+		return data;
+	}
 	
 	/**
 	 * 启动监控jvm进程
 	 * 
 	 * @param connector jvm连接
 	 */
-	public void startWatcher(int dataSize, JVMConnector connector){
+	public void startWatcher(JVMConnector connector){
 		if(connector.getEnable().get()){
 			return;
 		}
-		dataSize = dataSize<1?1:dataSize;
+		maxSegSize = maxSegSize<1?1:maxSegSize;
+		interval   = interval<1000?1000:interval;
+		connector.getInterval().set(interval);
 		if(connector!=null){
 			WatcherCallback callback = new WatcherCallback() {
 				
@@ -254,9 +273,9 @@ public class SystemInfoService extends BaseService{
 						return;
 					}
 					
-					LOGGER.info("jvm process {}, watch begin ...", url);
+					LOGGER.debug("jvm process {}, watch begin ...", url);
 					segment.getHeapPools().forEach(heap->{
-						LOGGER.info("jvm process {}, heap {}, init {}, max {}, committed {}, used {}", url,
+						LOGGER.debug("jvm process {}, heap {}, init {}, max {}, committed {}, used {}", url,
 								heap.getName(), 
 								FileUtil.getLengthWithUnit(heap.getInit()),
 								FileUtil.getLengthWithUnit(heap.getMax()),
@@ -265,18 +284,18 @@ public class SystemInfoService extends BaseService{
 					});
 					
 					segment.getNonHeapPools().forEach(non->{
-						LOGGER.info("jvm process {}, non-heap {}, init {}, max {}, committed {}, used {}", url,
+						LOGGER.debug("jvm process {}, non-heap {}, init {}, max {}, committed {}, used {}", url,
 								non.getName(), 
 								FileUtil.getLengthWithUnit(non.getInit()),
 								FileUtil.getLengthWithUnit(non.getMax()),
 								FileUtil.getLengthWithUnit(non.getCommitted()),
 								FileUtil.getLengthWithUnit(non.getUsed()));
 					});
-					LOGGER.info("jvm process {}, watch finish", url);
+					LOGGER.debug("jvm process {}, watch finish", url);
 				}
 			};
 			try {
-				connector.startWatcher(dataSize, callback);
+				connector.startWatcher(maxSegSize, callback);
 				LOGGER.info("jvm process {} started", connector.getUrl());
 			} catch (Exception e) {
 				LOGGER.error("", e);

@@ -18,7 +18,6 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping("/process")
 public class ProcessController extends BaseController {
 	
-	private final int dataSize = 10;
 	@Resource
 	private SystemInfoService systemInfoService;
 	
@@ -29,7 +28,9 @@ public class ProcessController extends BaseController {
 		String url = JMXLocalConnector.getLocalUrl(pid);
 		try {
 			JVMConnector connector = systemInfoService.getConnector(url);
-			systemInfoService.startWatcher(dataSize, connector);
+			systemInfoService.startWatcher(connector);
+			mv.addObject("pid", pid);
+			mv.addObject("url", url);
 			mv.addObject("connector", connector);
 		} catch (IOException e) {
 			mv.setViewName("redirect:/error");
@@ -56,6 +57,21 @@ public class ProcessController extends BaseController {
 		}
 		return res;
 	}
+	
+	@RequestMapping("/local/data")
+	@ResponseBody
+	public Result getLocalData(long pid){
+		
+		Result res = new Result();
+		String url = JMXLocalConnector.getLocalUrl(pid);
+		try {
+			res.setModel(systemInfoService.getData(url));
+		} catch (IOException e) {
+			res.setCode(FAIL);
+			res.setMsg(e.getMessage());
+		}
+		return res;
+	}
 
 	@RequestMapping("/remote/open")
 	@ResponseBody
@@ -63,7 +79,7 @@ public class ProcessController extends BaseController {
 		ModelAndView mv = new ModelAndView("pwatcher");
 		try {
 			JVMConnector connector = systemInfoService.getConnector(url);
-			systemInfoService.startWatcher(dataSize, connector);
+			systemInfoService.startWatcher(connector);
 			mv.addObject("connector", connector);
 		} catch (IOException e) {
 			mv.setViewName("redirect:/error");
