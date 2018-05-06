@@ -12,7 +12,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class PageController extends BaseController {
 	
 	@Resource
-	SystemInfoService systemInfoService;
+	private SystemInfoService systemInfoService;
 	
 	@RequestMapping("/")
 	@ResponseBody

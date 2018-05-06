@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class JWatcherController extends BaseController{
 	
 	@Resource
-	SystemInfoService systemInfoService;
+	private SystemInfoService systemInfoService;
 	
 	
 	@RequestMapping("/capacity")

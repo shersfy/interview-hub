@@ -239,10 +239,11 @@ public class SystemInfoService extends BaseService{
 	 * 
 	 * @param connector jvm连接
 	 */
-	public void startWatcher(JVMConnector connector){
+	public void startWatcher(int dataSize, JVMConnector connector){
 		if(connector.getEnable().get()){
 			return;
 		}
+		dataSize = dataSize<1?1:dataSize;
 		if(connector!=null){
 			WatcherCallback callback = new WatcherCallback() {
 				
@@ -255,7 +256,7 @@ public class SystemInfoService extends BaseService{
 					
 					LOGGER.info("jvm process {}, watch begin ...", url);
 					segment.getHeapPools().forEach(heap->{
-						LOGGER.info("heap {}, init {}, max {}, committed {}, used {}", 
+						LOGGER.info("jvm process {}, heap {}, init {}, max {}, committed {}, used {}", url,
 								heap.getName(), 
 								FileUtil.getLengthWithUnit(heap.getInit()),
 								FileUtil.getLengthWithUnit(heap.getMax()),
@@ -264,7 +265,7 @@ public class SystemInfoService extends BaseService{
 					});
 					
 					segment.getNonHeapPools().forEach(non->{
-						LOGGER.info("non-heap {}, init {}, max {}, committed {}, used {}", 
+						LOGGER.info("jvm process {}, non-heap {}, init {}, max {}, committed {}, used {}", url,
 								non.getName(), 
 								FileUtil.getLengthWithUnit(non.getInit()),
 								FileUtil.getLengthWithUnit(non.getMax()),
@@ -275,7 +276,7 @@ public class SystemInfoService extends BaseService{
 				}
 			};
 			try {
-				connector.startWatcher(callback);
+				connector.startWatcher(dataSize, callback);
 				LOGGER.info("jvm process {} started", connector.getUrl());
 			} catch (Exception e) {
 				LOGGER.error("", e);

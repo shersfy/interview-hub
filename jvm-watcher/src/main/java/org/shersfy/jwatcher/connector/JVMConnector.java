@@ -7,9 +7,8 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.ThreadMXBean;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +25,9 @@ import org.shersfy.jwatcher.entity.JVMMemoSegment;
 import org.shersfy.jwatcher.entity.JVMMemoUsage;
 import org.shersfy.jwatcher.service.SystemInfoService;
 
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
+
 public class JVMConnector {
 
 	/**jmx连接串**/
@@ -33,7 +35,7 @@ public class JVMConnector {
 	/**启用监听**/
 	private AtomicBoolean enable;
 	/**监听最大Segments缓存数**/
-	private AtomicInteger maxSegments;
+	private AtomicInteger maxSegSize;
 	/**监听时间间隔(毫秒)**/
 	private AtomicLong interval;
 	/**更新时间 连接超时判定用**/
@@ -41,7 +43,7 @@ public class JVMConnector {
 	/**jmx连接**/
 	private JMXConnector jmxConnector;
 	/**监听jvm不同时刻的内存数据**/
-	private LinkedList<JVMMemoSegment> memoSegments;
+	private ConcurrentLinkedQueue<JVMMemoSegment> memoSegments;
 	
 	private JVMConnector(){
 		if(SystemInfoService.conf!=null){
@@ -64,10 +66,23 @@ public class JVMConnector {
 			return obj;
 		}
 		
+		if(StringUtils.isBlank(url) || !StringUtils.startsWithIgnoreCase(url, "localhost/")){
+			throw new IOException("url error: "+url);
+		}
+		
 		obj = new JVMConnector();
 		obj.url = url;
-		if(StringUtils.isBlank(url) || url.startsWith("localhost")){
-			obj.jmxConnector = obj.jmxConnector==null?new JMXLocalConnector():obj.jmxConnector;
+		if(url.startsWith("localhost")){
+			try {
+				long pid = Long.parseLong(url.split("/")[1].trim());
+				obj.jmxConnector = getLocalConnector(pid);
+			} catch (IOException e) {
+				throw e;
+			} catch (NumberFormatException e) {
+				throw new IOException("url error: "+url);
+			} catch (Exception e) {
+				throw new IOException(e);
+			}
 		} else {
 			JMXServiceURL serviceURL = new JMXServiceURL(url);
 			obj.jmxConnector = JMXConnectorFactory.connect(serviceURL);
@@ -81,64 +96,64 @@ public class JVMConnector {
 		
 		obj.setEnable(new AtomicBoolean(false));
 		obj.setInterval(new AtomicLong(5000));
-		obj.setMaxSegments(new AtomicInteger(0));
-		obj.memoSegments = (LinkedList<JVMMemoSegment>) Collections.synchronizedList(new LinkedList<JVMMemoSegment>());
+		obj.setMaxSegSize(new AtomicInteger(1));
+		obj.memoSegments = new ConcurrentLinkedQueue<>();
 		
 		return obj;
 	}
 	
+	
+	public static JMXConnector getLocalConnector(long pid) throws AttachNotSupportedException, IOException{
+		VirtualMachine jvm = VirtualMachine.attach(String.valueOf(pid));
+		String key  = "com.sun.management.jmxremote.localConnectorAddress";
+		String addr = jvm.getAgentProperties().getProperty(key);
+		if(StringUtils.isBlank(addr)){
+			jvm.startLocalManagementAgent();
+			addr = jvm.getAgentProperties().getProperty(key);
+        }
+		JMXServiceURL url = new JMXServiceURL(addr);
+		JMXConnector connector = JMXConnectorFactory.connect(url);
+		return connector;
+	}
+	
 	public MemoryMXBean getMemoryMXBean() throws IOException {
-		MemoryMXBean memoBean = null;
-		if(isLocal()){
-			memoBean = ManagementFactory.getMemoryMXBean();
-		} else {
-			MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
-			memoBean = ManagementFactory.getPlatformMXBean(conn, MemoryMXBean.class);
-		}
+		MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
+		MemoryMXBean memoBean = ManagementFactory.getPlatformMXBean(conn, MemoryMXBean.class);
 		return memoBean;
 	}
 	
 	public List<MemoryPoolMXBean> getMemoryPoolMXBeans() throws IOException{
-		List<MemoryPoolMXBean> poolBeans = null;
-		if(isLocal()){
-			poolBeans = ManagementFactory.getMemoryPoolMXBeans();
-		} else {
-			MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
-			poolBeans = ManagementFactory.getPlatformMXBeans(conn, MemoryPoolMXBean.class);
-		}
+		MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
+		List<MemoryPoolMXBean> poolBeans = ManagementFactory.getPlatformMXBeans(conn, MemoryPoolMXBean.class);
 		return poolBeans;
 	}
 	
 	public OperatingSystemMXBean getOperatingSystemMXBean() throws IOException{
-		OperatingSystemMXBean osBean = null;
-		if(isLocal()){
-			osBean = ManagementFactory.getOperatingSystemMXBean();
-		} else {
-			MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
-			osBean = ManagementFactory.getPlatformMXBean(conn, OperatingSystemMXBean.class);
-		}
+		MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
+		OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(conn, OperatingSystemMXBean.class);
 		return osBean;
 	}
 	
 	public ThreadMXBean getThreadMXBean() throws IOException{
-		ThreadMXBean threadBean = null;
-		if(isLocal()){
-			threadBean = ManagementFactory.getThreadMXBean();
-		} else {
-			MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
-			threadBean = ManagementFactory.getPlatformMXBean(conn, ThreadMXBean.class);
-		}
+		MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
+		ThreadMXBean threadBean = ManagementFactory.getPlatformMXBean(conn, ThreadMXBean.class);
 		return threadBean;
 	}
 	
-	public synchronized void startWatcher(WatcherCallback callback) throws IOException{
+	public synchronized void startWatcher(int maxSegSize, WatcherCallback callback) throws IOException{
 		if(this.enable.get()){
 			return;
 		}
+		
 		if(SystemInfoService.conf==null 
 				|| SystemInfoService.conf.getJvmWatcherThreadsPool()==null){
 			throw new IOException("configuration instance's JvmWatcherThreadsPool is null");
 		}
+		
+		if(maxSegSize<1){
+			throw new IOException("maxSegSize must be more than 1");
+		}
+		getMaxSegSize().set(maxSegSize);
 		
 		ExecutorService pool = SystemInfoService.conf.getJvmWatcherThreadsPool();
 		pool.execute(new Runnable() {
@@ -158,16 +173,21 @@ public class JVMConnector {
 						List<MemoryPoolMXBean> poolBeans = getMemoryPoolMXBeans();
 						poolBeans.forEach(bean->{
 							if(isHeap(bean.getName())){
-								segment.getHeapPools().add(new JVMMemoUsage(bean.getName(), heap.getInit(), heap.getUsed(), heap.getCommitted(), heap.getMax()));
+								segment.getHeapPools().add(new JVMMemoUsage(bean.getName(), 
+										bean.getUsage().getInit(), bean.getUsage().getUsed(), bean.getUsage().getCommitted(), bean.getUsage().getMax()));
 							} else {
-								segment.getNonHeapPools().add(new JVMMemoUsage(bean.getName(), heap.getInit(), heap.getUsed(), heap.getCommitted(), heap.getMax()));
+								segment.getNonHeapPools().add(new JVMMemoUsage(bean.getName(), 
+										bean.getUsage().getInit(), bean.getUsage().getUsed(), bean.getUsage().getCommitted(), bean.getUsage().getMax()));
 							}
 						});
 						
-						if(getMemoSegments().size()>=getMaxSegments().get()){
+						// 保留最大元素个数
+						if(getMemoSegments().size()>=getMaxSegSize().get()){
 							getMemoSegments().poll();
 						}
-						getMemoSegments().push(segment);
+						getMemoSegments().add(segment);
+						
+						Thread.sleep(getInterval().get());
 					} catch (Throwable e) {
 						JVMConnector.this.stopWatcher();
 						callback.setException(e);
@@ -178,6 +198,7 @@ public class JVMConnector {
 			}
 			
 		});
+		getEnable().set(true);
 	}
 	
 	public synchronized void stopWatcher(){
@@ -211,9 +232,15 @@ public class JVMConnector {
 	 * 是否是本地连接
 	 * @return
 	 */
-	public boolean isLocal(){
-		return jmxConnector instanceof JMXLocalConnector;
-	}
+//	public boolean isLocal(){
+//		if(!StringUtils.startsWith(url, "localhost")){
+//			return false;
+//		}
+//		if(!url.contains("/")){
+//			return false;
+//		}
+//		return true;
+//	}
 
 	public JMXConnector getJmxConnector() {
 		return jmxConnector;
@@ -237,11 +264,11 @@ public class JVMConnector {
 		this.url = url;
 	}
 
-	public LinkedList<JVMMemoSegment> getMemoSegments() {
+	public ConcurrentLinkedQueue<JVMMemoSegment> getMemoSegments() {
 		return memoSegments;
 	}
 
-	public void setMemoSegments(LinkedList<JVMMemoSegment> memoSegments) {
+	public void setMemoSegments(ConcurrentLinkedQueue<JVMMemoSegment> memoSegments) {
 		this.memoSegments = memoSegments;
 	}
 
@@ -261,12 +288,13 @@ public class JVMConnector {
 		this.interval = interval;
 	}
 
-	public AtomicInteger getMaxSegments() {
-		return maxSegments;
+	public AtomicInteger getMaxSegSize() {
+		return maxSegSize;
 	}
 
-	public void setMaxSegments(AtomicInteger maxSegments) {
-		this.maxSegments = maxSegments;
+	public void setMaxSegSize(AtomicInteger maxSegSize) {
+		this.maxSegSize = maxSegSize;
 	}
+
 
 }

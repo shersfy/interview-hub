@@ -1,5 +1,8 @@
 package org.shersfy.jwatcher;
 
+import java.util.LinkedList;
+
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -29,6 +32,17 @@ public class AppTest
     }
 
     public void test01() throws Exception {
+    	LinkedList<String> list = new LinkedList<>();
+    	list.add("A");
+    	list.add("B");
+    	list.add("C");
+    	
+    	for(int i=0; i<10; i++){
+    		System.out.println("================");
+    		list.forEach(System.out::println);
+    		list.poll();
+    		list.add("D"+i);
+    	}
     	
     }
 }
