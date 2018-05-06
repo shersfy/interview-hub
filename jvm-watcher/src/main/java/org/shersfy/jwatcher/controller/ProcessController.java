@@ -32,7 +32,7 @@ public class ProcessController extends BaseController {
 			systemInfoService.startWatcher(dataSize, connector);
 			mv.addObject("connector", connector);
 		} catch (IOException e) {
-			mv.setViewName("error");
+			mv.setViewName("redirect:/error");
 			mv.addObject("status", FAIL);
 			mv.addObject("error", e.getMessage());
 			mv.addObject("message", e.getMessage());
@@ -66,7 +66,9 @@ public class ProcessController extends BaseController {
 			systemInfoService.startWatcher(dataSize, connector);
 			mv.addObject("connector", connector);
 		} catch (IOException e) {
-			mv.setViewName("error");
+			mv.setViewName("redirect:/error");
+			mv.addObject("status", FAIL);
+			mv.addObject("error", e.getMessage());
 			mv.addObject("message", e.getMessage());
 		}
 		return mv;
