@@ -162,6 +162,7 @@ public class JVMConnector {
 			public void run() {
 				while(getEnable().get()){
 					JVMMemoSegment segment = new JVMMemoSegment();
+					segment.setCreateTime(System.currentTimeMillis());
 					try {
 						MemoryMXBean memoBean = getMemoryMXBean();
 						MemoryUsage heap = memoBean.getHeapMemoryUsage();

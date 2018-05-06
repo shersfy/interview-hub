@@ -61,7 +61,7 @@ public class TimerJMXConnectTimeout {
 			keys.forEach(key->{
 				JVMConnector value = cache.get(key);
 				if(now-value.getUpdatetime()>out){
-					cache.remove(key);
+					value.stopWatcher();
 					LOGGER.info("{} {} connect timeout", value.getClass().getSimpleName(), key);
 				}
 			});
