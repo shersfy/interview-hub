@@ -24,7 +24,7 @@ public class ProcessController extends BaseController {
 	@RequestMapping("/local/open/{pid}")
 	@ResponseBody
 	public ModelAndView openLocalConnector(@PathVariable("pid") long pid){
-		ModelAndView mv = new ModelAndView("pwatcher");
+		ModelAndView mv = new ModelAndView("watcher");
 		String url = JMXLocalConnector.getLocalUrl(pid);
 		try {
 			JVMConnector connector = systemInfoService.getConnector(url);
@@ -76,7 +76,7 @@ public class ProcessController extends BaseController {
 	@RequestMapping("/remote/open")
 	@ResponseBody
 	public ModelAndView getRemoteConnector(String url){
-		ModelAndView mv = new ModelAndView("pwatcher");
+		ModelAndView mv = new ModelAndView("watcher");
 		try {
 			JVMConnector connector = systemInfoService.getConnector(url);
 			systemInfoService.startWatcher(connector);
