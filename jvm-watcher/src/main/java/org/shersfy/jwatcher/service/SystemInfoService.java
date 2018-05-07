@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
+import java.lang.management.ThreadMXBean;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -37,6 +41,7 @@ import org.shersfy.jwatcher.entity.DiskInfo;
 import org.shersfy.jwatcher.entity.JVMInfo;
 import org.shersfy.jwatcher.entity.JVMMemoSegment;
 import org.shersfy.jwatcher.entity.JVMProcess;
+import org.shersfy.jwatcher.entity.JVMThreads;
 import org.shersfy.jwatcher.entity.Memory;
 import org.shersfy.jwatcher.entity.SystemInfo;
 import org.shersfy.jwatcher.utils.FileUtil;
@@ -249,6 +254,69 @@ public class SystemInfoService extends BaseService{
 		JVMMemoSegment[] data = connector.getMemoSegments().toArray(new JVMMemoSegment[connector.getMemoSegments().size()]);
 		connector.updatetime();
 		return data;
+	}
+	
+	public String getServerOS(JVMConnector connector){
+		String info = "";
+		if(connector == null){
+			return info;
+		}
+		try {
+			OperatingSystemMXBean os = connector.getOperatingSystemMXBean();
+			info = String.format("%s %s %s %s cores", 
+					os.getName(),
+					os.getVersion(),
+					os.getArch(),
+					os.getAvailableProcessors());
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		
+		return info;
+	}
+	
+	public JVMInfo getServerJVM(JVMConnector connector){
+		JVMInfo info = new JVMInfo();
+		if(connector == null){
+			return info;
+		}
+		try {
+			RuntimeMXBean bean = connector.getRuntimeMXBean();
+			String javaVersion = String.format("%s JDK%s Build %s", 
+					bean.getVmName(),
+					bean.getSpecVersion(),
+					bean.getVmVersion());
+			info.setName(bean.getName());
+			info.setJavaVersion(javaVersion);
+			info.setJavaVendor(bean.getVmVendor());
+			info.setJavaOpts(bean.getInputArguments());
+			info.setJavaHome(bean.getSystemProperties().get("java.home"));
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		
+		return info;
+	}
+	
+	public JVMThreads getServerThreads(JVMConnector connector, boolean all){
+		JVMThreads info = new JVMThreads();
+		if(connector == null){
+			return info;
+		}
+		try {
+			ThreadMXBean bean = connector.getThreadMXBean();
+			info.setName(bean.getObjectName().getCanonicalName());
+			info.setDaemonThreadCount(bean.getDaemonThreadCount());
+			info.setPeakThreadCount(bean.getPeakThreadCount());
+			info.setTotalStartedThreadCount(bean.getTotalStartedThreadCount());
+			info.setThreadCount(bean.getThreadCount());
+			if(all){
+				info.setAllThreads(Arrays.asList(bean.dumpAllThreads(true, true)));
+			}
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return info;
 	}
 	
 	/**

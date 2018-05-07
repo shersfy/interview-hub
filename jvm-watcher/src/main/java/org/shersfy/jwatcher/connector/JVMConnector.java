@@ -6,6 +6,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadMXBean;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -132,6 +133,12 @@ public class JVMConnector {
 		MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
 		OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(conn, OperatingSystemMXBean.class);
 		return osBean;
+	}
+	
+	public RuntimeMXBean getRuntimeMXBean() throws IOException{
+		MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
+		RuntimeMXBean bean = ManagementFactory.getPlatformMXBean(conn, RuntimeMXBean.class);
+		return bean;
 	}
 	
 	public ThreadMXBean getThreadMXBean() throws IOException{

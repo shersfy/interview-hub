@@ -22,15 +22,28 @@
 
 </head>
 <body index="3">
-	<div style="text-align:left;padding:5px 0">
-    	<a id="close-btn" status="off" href="javascript:void(0)" class="easyui-linkbutton" style="width:80px; margin-left: 10px;">断开</a>
-    </div>
    	<div class="easyui-accordion">
-		<div title="About" data-options="iconCls:'icon-tip'" style="overflow:auto;padding:10px;">
-			<h3 style="color:#0099FF;">Accordion for jQuery</h3>
-			<p>Accordion is a part of easyui framework for jQuery. It lets you define your accordion component on web page more easily.</p>
+		<div th:title="|JVM信息  ${jvm.name}|" data-options="iconCls:'icon-tip'" style="overflow:auto;padding:10px;">
+			<ul>
+				<li th:text="|系统: ${os}|"></li>
+				<li th:text="|JVM: ${jvm.javaVersion}|"></li>
+				<li th:text="|JAVA_HOME: ${jvm.javaHome}|"></li>
+				<li>JAVA_OPTS: </li>
+				<div th:each="opt: ${jvm.javaOpts}">
+					<li th:text="${opt}"></li>
+				</div>
+				<li><a th:href="${basePath}" target="_blank">JVM线程栈详情</a></li>
+				<li th:text="|当前活动线程数(包括守护线程和非守护线程)threadCount: ${threads.threadCount}|"></li>
+				<li th:text="|当前活动守护线程数daemonThreadCount: ${threads.daemonThreadCount}|"></li>
+				<li th:text="|峰值活动线程数(自从 Java 虚拟机启动或峰值重置以来峰值活动线程计数)peakThreadCount: ${threads.peakThreadCount}|"></li>
+				<li th:text="|已启动的线程数(自从 Java 虚拟机启动以来创建和启动的线程总数目)totalStartedThreadCount: ${threads.totalStartedThreadCount}|"></li>
+			</ul>
 		</div>
 	</div>
+	<div style="text-align:left;padding:5px 0">
+    	<a id="close-btn" status="off" href="javascript:void(0)" class="easyui-linkbutton" style="width:80px; margin-left: 10px;">断开</a>
+    	<a ></a>
+    </div>
 	<div id="heapChart" class="echarts-long"></div>
 	<div id="heap-detailChart" class="echarts-long"></div>
 	<div id="non-heapChart" class="echarts-long"></div>

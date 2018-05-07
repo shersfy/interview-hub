@@ -1,5 +1,8 @@
 package org.shersfy.jwatcher.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.shersfy.jwatcher.utils.FileUtil;
 
 public class JVMInfo extends BaseEntity {
@@ -13,6 +16,7 @@ public class JVMInfo extends BaseEntity {
 	private String javaVendor;
 	private String javaVendorUrl;
 	private String javaHome;
+	private List<String> javaOpts;
 	
 	// heap
 	private long initMemory;
@@ -22,6 +26,10 @@ public class JVMInfo extends BaseEntity {
 	private long freeMemory;
 	
 	private int processors;
+	
+	public JVMInfo(){
+		javaOpts = new ArrayList<>();
+	}
 	
 	public String getInit() {
 		return FileUtil.getLengthWithUnit(initMemory);
@@ -97,6 +105,14 @@ public class JVMInfo extends BaseEntity {
 	}
 	public void setFreeMemory(long freeMemory) {
 		this.freeMemory = freeMemory;
+	}
+
+	public List<String> getJavaOpts() {
+		return javaOpts;
+	}
+
+	public void setJavaOpts(List<String> javaOpts) {
+		this.javaOpts = javaOpts;
 	}
 	
 	

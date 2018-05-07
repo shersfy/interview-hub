@@ -31,7 +31,9 @@ public class ProcessController extends BaseController {
 			systemInfoService.startWatcher(connector);
 			mv.addObject("pid", pid);
 			mv.addObject("url", url);
-			mv.addObject("connector", connector);
+			mv.addObject("os", systemInfoService.getServerOS(connector));
+			mv.addObject("jvm", systemInfoService.getServerJVM(connector));
+			mv.addObject("threads", systemInfoService.getServerThreads(connector, false));
 		} catch (IOException e) {
 			mv.setViewName("redirect:/error");
 			mv.addObject("status", FAIL);
