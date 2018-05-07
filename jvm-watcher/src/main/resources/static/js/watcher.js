@@ -6,6 +6,20 @@ $(function(){
 	if(watcher.intervalId<1){
 		watcher.intervalId = watcher.flushInterval(interval, pid);
 	}
+	
+	$("#close-btn").click(function(){
+		var status = $(this).attr("status");
+		if("off"==status){
+			// close()
+			watcher.close(pid);
+		} else {
+			// reopen()
+			watcher.reopen(interval, pid);
+		}
+	});
+	
+	$(".easyui-accordion").accordion('getSelected').panel('collapse');
+	
 	window.onbeforeunload= function(event) {
 		return "";
 	}
@@ -179,9 +193,6 @@ var watcher = {
 							else if(name.indexOf("Tenured")>-1 || name.indexOf("Old")>-1){
 								if(tenuMax==0){
 									tenuMax = init>max?init:max;
-									console.log("init:" +init);
-									console.log("max:" +max);
-									console.log(init>max);
 								}
 								tenuDetailYdata[0].data[i] = init;
 								tenuDetailYdata[1].data[i] = max;
@@ -289,6 +300,39 @@ var watcher = {
 				
 			}
 			
+		});
+	},
+	// 重新打开
+	reopen: function(interval, pid){
+		$.messager.confirm('确认', '确认重新打开连接吗?', function(ok){
+			if (ok && watcher.intervalId<1){
+				location.reload();
+			}
+		});
+	},
+	// 关闭连接
+	close: function(pid){
+		$.messager.confirm('确认', '确认断开连接吗?', function(ok){
+			if (ok){
+				watcher.clean();
+				$.ajax({
+					url: basePath + '/process/local/close',
+					data: {
+						"pid": pid
+					},
+					success:function(result){
+						if (result.code != 200 ){
+							$.messager.alert('错误', result.msg, 'error');
+							watcher.clean();
+							return ;
+						} else {
+							$.messager.alert('提示', "已断开", 'info');
+							$("#close-btn").children("span").children("span").text("连接");
+							$("#close-btn").attr("status", "on");
+						}
+					}
+				});
+			}
 		});
 	},
 	// 清除定时任务

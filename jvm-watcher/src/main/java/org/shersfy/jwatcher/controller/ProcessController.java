@@ -41,9 +41,9 @@ public class ProcessController extends BaseController {
 		return mv;
 	}
 	
-	@RequestMapping("/local/close/{pid}")
+	@RequestMapping("/local/close")
 	@ResponseBody
-	public Result closeLocalConnector(@PathVariable("pid") long pid){
+	public Result closeLocalConnector(long pid){
 		
 		Result res = new Result();
 		String url = JMXLocalConnector.getLocalUrl(pid);
