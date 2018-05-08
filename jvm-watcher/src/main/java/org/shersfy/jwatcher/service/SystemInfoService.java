@@ -39,7 +39,6 @@ import org.shersfy.jwatcher.connector.JVMConnector;
 import org.shersfy.jwatcher.connector.WatcherCallback;
 import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.DiskInfo;
-import org.shersfy.jwatcher.entity.JVMGarbageCollector;
 import org.shersfy.jwatcher.entity.JVMInfo;
 import org.shersfy.jwatcher.entity.MemoSegment;
 import org.shersfy.jwatcher.entity.JVMProcess;

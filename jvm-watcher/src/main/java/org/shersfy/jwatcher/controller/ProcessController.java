@@ -33,6 +33,7 @@ public class ProcessController extends BaseController {
 			mv.addObject("threads", systemInfoService.getServerThreads(connector, false));
 			mv.addObject("gcnames", systemInfoService.getServerGCNames(connector));
 		} catch (IOException e) {
+			LOGGER.error(url, e);
 			mv.setViewName("redirect:/error");
 			mv.addObject("status", FAIL);
 			mv.addObject("error", e.getMessage());
@@ -50,6 +51,7 @@ public class ProcessController extends BaseController {
 			systemInfoService.stopWatcher(connector);
 			res.setModel(url);
 		} catch (IOException e) {
+			LOGGER.error(url, e);
 			res.setCode(FAIL);
 			res.setMsg(e.getMessage());
 		}
@@ -64,6 +66,7 @@ public class ProcessController extends BaseController {
 		try {
 			res.setModel(systemInfoService.getData(url));
 		} catch (IOException e) {
+			LOGGER.error(url, e);
 			res.setCode(FAIL);
 			res.setMsg(e.getMessage());
 		}
