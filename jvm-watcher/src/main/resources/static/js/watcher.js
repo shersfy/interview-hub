@@ -1,20 +1,21 @@
 $(function(){
 	var interval = 2000;
-	var pid = $("title").attr("pid");
-	watcher.flush(pid);
+	var url = $("title").attr("url");
+	
+	watcher.flush(url);
 	// 数据频率刷新
 	if(watcher.intervalId<1){
-		watcher.intervalId = watcher.flushInterval(interval, pid);
+		watcher.intervalId = watcher.flushInterval(interval, url);
 	}
 	
 	$("#close-btn").click(function(){
 		var status = $(this).attr("status");
 		if("off"==status){
 			// close()
-			watcher.close(pid);
+			watcher.close(url);
 		} else {
 			// reopen()
-			watcher.reopen(interval, pid);
+			watcher.reopen(interval, url);
 		}
 	});
 	
@@ -77,20 +78,20 @@ var watcher = {
 	},
 
 	// 定时刷新
-	flushInterval: function(interval, pid){
+	flushInterval: function(interval, url){
 		var id = setInterval(function () {
-			watcher.flush(pid);
+			watcher.flush(url);
 		}, interval);
 		return id;
 	},
 	// 刷新
-	flush: function(pid){
+	flush: function(url){
 
 		// get data
 		$.ajax({
-			url: basePath + '/process/local/data',
+			url: basePath + '/process/data',
 			data: {
-				"pid": pid
+				"url": url
 			},
 			success:function(result){
 				if (result.code != 200 ){
@@ -303,7 +304,7 @@ var watcher = {
 		});
 	},
 	// 重新打开
-	reopen: function(interval, pid){
+	reopen: function(interval, url){
 		$.messager.confirm('确认', '确认重新打开连接吗?', function(ok){
 			if (ok && watcher.intervalId<1){
 				location.reload();
@@ -311,14 +312,14 @@ var watcher = {
 		});
 	},
 	// 关闭连接
-	close: function(pid){
+	close: function(url){
 		$.messager.confirm('确认', '确认断开连接吗?', function(ok){
 			if (ok){
 				watcher.clean();
 				$.ajax({
-					url: basePath + '/process/local/close',
+					url: basePath + '/process/close',
 					data: {
-						"pid": pid
+						"url": url
 					},
 					success:function(result){
 						if (result.code != 200 ){

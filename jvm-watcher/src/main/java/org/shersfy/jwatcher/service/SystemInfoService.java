@@ -2,6 +2,7 @@ package org.shersfy.jwatcher.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
@@ -38,8 +39,9 @@ import org.shersfy.jwatcher.connector.JVMConnector;
 import org.shersfy.jwatcher.connector.WatcherCallback;
 import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.DiskInfo;
+import org.shersfy.jwatcher.entity.JVMGarbageCollector;
 import org.shersfy.jwatcher.entity.JVMInfo;
-import org.shersfy.jwatcher.entity.JVMMemoSegment;
+import org.shersfy.jwatcher.entity.MemoSegment;
 import org.shersfy.jwatcher.entity.JVMProcess;
 import org.shersfy.jwatcher.entity.JVMThreads;
 import org.shersfy.jwatcher.entity.Memory;
@@ -245,13 +247,13 @@ public class SystemInfoService extends BaseService{
 		return connector;
 	}
 	
-	public JVMMemoSegment[] getData(String url) throws IOException{
+	public MemoSegment[] getData(String url) throws IOException{
 		JVMConnector connector = conf.getCache().get(url);
 		if(connector==null || !connector.getEnable().get()){
 			throw new IOException("JVMConnector is not created or not started: "+url);
 		}
 		
-		JVMMemoSegment[] data = connector.getMemoSegments().toArray(new JVMMemoSegment[connector.getMemoSegments().size()]);
+		MemoSegment[] data = connector.getMemoSegments().toArray(new MemoSegment[connector.getMemoSegments().size()]);
 		connector.updatetime();
 		return data;
 	}
@@ -298,6 +300,24 @@ public class SystemInfoService extends BaseService{
 		return info;
 	}
 	
+	public List<String> getServerGCNames(JVMConnector connector){
+		List<String> list = new ArrayList<>();
+		if(connector == null){
+			return list;
+		}
+		try {
+			List<GarbageCollectorMXBean> beans = connector.getGC();
+			beans.forEach(bean->{
+				list.add(String.format("%s: %s", 
+						bean.getName(),
+						StringUtils.join(bean.getMemoryPoolNames(), ", ")));
+			});
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return list;
+	}
+	
 	public JVMThreads getServerThreads(JVMConnector connector, boolean all){
 		JVMThreads info = new JVMThreads();
 		if(connector == null){
@@ -335,15 +355,15 @@ public class SystemInfoService extends BaseService{
 			WatcherCallback callback = new WatcherCallback() {
 				
 				@Override
-				public void callbackWatchMemo(String url, JVMMemoSegment segment) {
+				public void callbackWatchMemo(String url, MemoSegment segment) {
 					if(this.getException()!=null){
 						LOGGER.error("", this.getException());
 						return;
 					}
 					
-					LOGGER.debug("jvm process {}, watch begin ...", url);
+					LOGGER.debug("jvm process '{}', watch begin ...", url);
 					segment.getHeapPools().forEach(heap->{
-						LOGGER.debug("jvm process {}, heap {}, init {}, max {}, committed {}, used {}", url,
+						LOGGER.debug("jvm process '{}', heap {}, init {}, max {}, committed {}, used {}", url,
 								heap.getName(), 
 								FileUtil.getLengthWithUnit(heap.getInit()),
 								FileUtil.getLengthWithUnit(heap.getMax()),
@@ -352,19 +372,19 @@ public class SystemInfoService extends BaseService{
 					});
 					
 					segment.getNonHeapPools().forEach(non->{
-						LOGGER.debug("jvm process {}, non-heap {}, init {}, max {}, committed {}, used {}", url,
+						LOGGER.debug("jvm process '{}', non-heap {}, init {}, max {}, committed {}, used {}", url,
 								non.getName(), 
 								FileUtil.getLengthWithUnit(non.getInit()),
 								FileUtil.getLengthWithUnit(non.getMax()),
 								FileUtil.getLengthWithUnit(non.getCommitted()),
 								FileUtil.getLengthWithUnit(non.getUsed()));
 					});
-					LOGGER.debug("jvm process {}, watch finish", url);
+					LOGGER.debug("jvm process '{}', watch finish", url);
 				}
 			};
 			try {
 				connector.startWatcher(maxSegSize, callback);
-				LOGGER.info("jvm process {} started", connector.getUrl());
+				LOGGER.info("jvm process '{}' started", connector.getUrl());
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
@@ -379,7 +399,7 @@ public class SystemInfoService extends BaseService{
 	public void stopWatcher(JVMConnector connector){
 		if(connector!=null){
 			connector.stopWatcher();
-			LOGGER.info("jvm process {} stoped", connector.getUrl());
+			LOGGER.info("jvm process '{}' stoped", connector.getUrl());
 		}
 	}
 	

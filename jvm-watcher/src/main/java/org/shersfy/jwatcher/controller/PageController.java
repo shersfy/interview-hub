@@ -53,10 +53,10 @@ public class PageController extends BaseController {
 		mv.addObject("cpu", systemInfoService.getCpuInfo());
 		return mv;
 	}
-	@RequestMapping("/config")
+	@RequestMapping("/remote")
 	@ResponseBody
 	public ModelAndView config(){
-		ModelAndView mv = new ModelAndView("config");
+		ModelAndView mv = new ModelAndView("watcher_rmi");
 		return mv;
 	}
 }

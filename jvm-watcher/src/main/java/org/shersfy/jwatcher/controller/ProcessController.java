@@ -5,11 +5,9 @@ import java.io.IOException;
 import javax.annotation.Resource;
 
 import org.shersfy.jwatcher.beans.Result;
-import org.shersfy.jwatcher.connector.JMXLocalConnector;
 import org.shersfy.jwatcher.connector.JVMConnector;
 import org.shersfy.jwatcher.service.SystemInfoService;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
@@ -21,19 +19,19 @@ public class ProcessController extends BaseController {
 	@Resource
 	private SystemInfoService systemInfoService;
 	
-	@RequestMapping("/local/open/{pid}")
+	@RequestMapping("open")
 	@ResponseBody
-	public ModelAndView openLocalConnector(@PathVariable("pid") long pid){
+	public ModelAndView openRemoteConnector(String url){
+
 		ModelAndView mv = new ModelAndView("watcher");
-		String url = JMXLocalConnector.getLocalUrl(pid);
 		try {
 			JVMConnector connector = systemInfoService.getConnector(url);
 			systemInfoService.startWatcher(connector);
-			mv.addObject("pid", pid);
 			mv.addObject("url", url);
 			mv.addObject("os", systemInfoService.getServerOS(connector));
 			mv.addObject("jvm", systemInfoService.getServerJVM(connector));
 			mv.addObject("threads", systemInfoService.getServerThreads(connector, false));
+			mv.addObject("gcnames", systemInfoService.getServerGCNames(connector));
 		} catch (IOException e) {
 			mv.setViewName("redirect:/error");
 			mv.addObject("status", FAIL);
@@ -43,12 +41,10 @@ public class ProcessController extends BaseController {
 		return mv;
 	}
 	
-	@RequestMapping("/local/close")
+	@RequestMapping("close")
 	@ResponseBody
-	public Result closeLocalConnector(long pid){
-		
+	public Result closeRemoteConnector(String url){
 		Result res = new Result();
-		String url = JMXLocalConnector.getLocalUrl(pid);
 		try {
 			JVMConnector connector = systemInfoService.getConnector(url);
 			systemInfoService.stopWatcher(connector);
@@ -60,12 +56,11 @@ public class ProcessController extends BaseController {
 		return res;
 	}
 	
-	@RequestMapping("/local/data")
+	@RequestMapping("data")
 	@ResponseBody
-	public Result getLocalData(long pid){
+	public Result getLocalData(String url){
 		
 		Result res = new Result();
-		String url = JMXLocalConnector.getLocalUrl(pid);
 		try {
 			res.setModel(systemInfoService.getData(url));
 		} catch (IOException e) {
@@ -74,21 +69,5 @@ public class ProcessController extends BaseController {
 		}
 		return res;
 	}
-
-	@RequestMapping("/remote/open")
-	@ResponseBody
-	public ModelAndView getRemoteConnector(String url){
-		ModelAndView mv = new ModelAndView("watcher");
-		try {
-			JVMConnector connector = systemInfoService.getConnector(url);
-			systemInfoService.startWatcher(connector);
-			mv.addObject("connector", connector);
-		} catch (IOException e) {
-			mv.setViewName("redirect:/error");
-			mv.addObject("status", FAIL);
-			mv.addObject("error", e.getMessage());
-			mv.addObject("message", e.getMessage());
-		}
-		return mv;
-	}
+	
 }

@@ -3,7 +3,7 @@ package org.shersfy.jwatcher.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JVMMemoSegment extends BaseEntity {
+public class MemoSegment extends BaseEntity {
 
 	/**
 	 * 
@@ -11,27 +11,27 @@ public class JVMMemoSegment extends BaseEntity {
 	private static final long serialVersionUID = 1L;
 	
 	private long createTime;
-	private List<JVMMemoUsage> heapPools;
-	private List<JVMMemoUsage> nonHeapPools;
+	private List<MemoUsage> heapPools;
+	private List<MemoUsage> nonHeapPools;
 	
-	public JVMMemoSegment(){
+	public MemoSegment(){
 		heapPools = new ArrayList<>();
 		nonHeapPools = new ArrayList<>();
 	}
 	
-	public List<JVMMemoUsage> getHeapPools() {
+	public List<MemoUsage> getHeapPools() {
 		return heapPools;
 	}
 	
-	public List<JVMMemoUsage> getNonHeapPools() {
+	public List<MemoUsage> getNonHeapPools() {
 		return nonHeapPools;
 	}
 	
-	public void setHeapPools(List<JVMMemoUsage> heapPools) {
+	public void setHeapPools(List<MemoUsage> heapPools) {
 		this.heapPools = heapPools;
 	}
 	
-	public void setNonHeapPools(List<JVMMemoUsage> nonHeapPools) {
+	public void setNonHeapPools(List<MemoUsage> nonHeapPools) {
 		this.nonHeapPools = nonHeapPools;
 	}
 

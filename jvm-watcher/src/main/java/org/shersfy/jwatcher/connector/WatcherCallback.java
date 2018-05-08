@@ -1,11 +1,11 @@
 package org.shersfy.jwatcher.connector;
 
-import org.shersfy.jwatcher.entity.JVMMemoSegment;
+import org.shersfy.jwatcher.entity.MemoSegment;
 
 public abstract class WatcherCallback {
 
 	private Throwable exception;
-	public abstract void callbackWatchMemo(String url, JVMMemoSegment segment);
+	public abstract void callbackWatchMemo(String url, MemoSegment segment);
 
 	public Throwable getException() {
 		return exception;

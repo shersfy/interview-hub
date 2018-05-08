@@ -13,16 +13,16 @@ var process = {
 		initProcess: function(){
 			$('.jvm-process').each(function(){
 				$(this).click(function(){
-					var pid = $(this).text();
+					var url = "localhost/"+$(this).text();
 					$.messager.confirm('确认', '确认创建连接吗?', function(ok){
 						if (ok){
-							process.watchProcess(pid);
+							process.watchProcess(url);
 						}
 					});
 				});
 			});
 		},
-		watchProcess: function(pid){
-			window.open(basePath + "/process/local/open/"+pid);
+		watchProcess: function(url){
+			window.open(basePath + "/process/open?url="+url);
 		}
 }

@@ -8,6 +8,11 @@ a {
 	text-decoration: none;
 	color: blue;
 }
+hr {
+	height:2px;
+	border:none;
+	border-top:2px dotted #185598;
+}
 table {
 	font-size: 14px;
 	font-family: Microsoft YaHei;
