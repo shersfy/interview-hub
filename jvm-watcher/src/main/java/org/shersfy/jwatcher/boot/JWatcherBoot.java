@@ -6,10 +6,10 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan(basePackages="org.shersfy.jwatcher")
-public class JWatcherMain {
+public class JWatcherBoot {
 
 	public static void main(String[] args) {
-		SpringApplication.run(JWatcherMain.class, args);
+		SpringApplication.run(JWatcherBoot.class, args);
 	}
 
 }
