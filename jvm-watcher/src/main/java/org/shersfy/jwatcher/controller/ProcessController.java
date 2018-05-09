@@ -19,7 +19,7 @@ public class ProcessController extends BaseController {
 	@Resource
 	private SystemInfoService systemInfoService;
 	
-	@RequestMapping("open")
+	@RequestMapping("/open")
 	@ResponseBody
 	public ModelAndView openRemoteConnector(String url){
 
@@ -42,7 +42,7 @@ public class ProcessController extends BaseController {
 		return mv;
 	}
 	
-	@RequestMapping("close")
+	@RequestMapping("/close")
 	@ResponseBody
 	public Result closeRemoteConnector(String url){
 		Result res = new Result();
@@ -58,7 +58,7 @@ public class ProcessController extends BaseController {
 		return res;
 	}
 	
-	@RequestMapping("data")
+	@RequestMapping("/data")
 	@ResponseBody
 	public Result getLocalData(String url){
 		

@@ -96,7 +96,7 @@ public class JVMConnector {
 			SystemInfoService.conf.getCache().put(url, obj);
 		}
 		
-		obj.setEnable(new AtomicBoolean(false));
+		obj.setEnable(false);
 		obj.setInterval(new AtomicLong(5000));
 		obj.setMaxSegSize(new AtomicInteger(1));
 		obj.memoSegments = new ConcurrentLinkedQueue<>();
@@ -174,7 +174,7 @@ public class JVMConnector {
 			
 			@Override
 			public void run() {
-				while(getEnable().get()){
+				while(isEnable()){
 					MemoSegment segment = new MemoSegment();
 					segment.setCreateTime(System.currentTimeMillis());
 					try {
@@ -213,7 +213,7 @@ public class JVMConnector {
 			}
 			
 		});
-		getEnable().set(true);
+		setEnable(true);
 	}
 	
 	public synchronized void stopWatcher(){
@@ -284,12 +284,15 @@ public class JVMConnector {
 		this.memoSegments = memoSegments;
 	}
 
-	public AtomicBoolean getEnable() {
-		return enable;
+	public boolean isEnable() {
+		return enable.get();
 	}
 
-	public void setEnable(AtomicBoolean enable) {
-		this.enable = enable;
+	public void setEnable(boolean enable) {
+		if(this.enable==null){
+			this.enable = new AtomicBoolean(enable);
+		}
+		this.enable.set(enable);;
 	}
 
 	public AtomicLong getInterval() {

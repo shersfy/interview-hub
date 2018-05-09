@@ -1,3 +1,20 @@
+$(function(){
+	$('#watcher-rmi').DataTable({
+		"info": false,
+		"ordering": false,
+		"lengthChange": false,
+		"paging": false,
+		"searching": false
+	});
+	
+	$('.rmi-url').each(function(){
+		var url = $(this).attr("url");
+		$(this).click(function(){
+			$('#url').textbox('setValue', url);
+		});
+	});
+});
+
 function submitForm(){
 	var url = $('#url').val();
 	if(url == undefined || url.trim().length==0){

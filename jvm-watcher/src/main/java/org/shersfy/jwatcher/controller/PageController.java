@@ -57,6 +57,7 @@ public class PageController extends BaseController {
 	@ResponseBody
 	public ModelAndView config(){
 		ModelAndView mv = new ModelAndView("watcher_rmi");
+		mv.addObject("connectors", systemInfoService.getRemoteConnectors());
 		return mv;
 	}
 }

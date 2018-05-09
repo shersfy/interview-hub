@@ -35,6 +35,7 @@ import org.hyperic.sigar.OperatingSystem;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.shersfy.jwatcher.conf.Config;
+import org.shersfy.jwatcher.connector.JMXLocalConnector;
 import org.shersfy.jwatcher.connector.JVMConnector;
 import org.shersfy.jwatcher.connector.WatcherCallback;
 import org.shersfy.jwatcher.entity.CPUInfo;
@@ -232,6 +233,10 @@ public class SystemInfoService extends BaseService{
 				p.setPid(pid);
 				p.setName(mainClass);
 				p.setExePath(sigar.getProcExe(pid).getName());
+				JVMConnector conn = conf.getCache().get(JMXLocalConnector.getLocalUrl(pid));
+				if(conn!=null){
+					p.setWatch(conn.isEnable());
+				}
 				list.add(p);
 			}
 
@@ -246,9 +251,19 @@ public class SystemInfoService extends BaseService{
 		return connector;
 	}
 	
+	public List<JVMConnector> getRemoteConnectors(){
+		List<JVMConnector> list = new ArrayList<>();
+		conf.getCache().forEach((url, connector)->{
+			if(!JVMConnector.isLocal(url)){
+				list.add(connector);
+			}
+		});
+		return list;
+	}
+	
 	public MemoSegment[] getData(String url) throws IOException{
 		JVMConnector connector = conf.getCache().get(url);
-		if(connector==null || !connector.getEnable().get()){
+		if(connector==null || !connector.isEnable()){
 			throw new IOException("JVMConnector is not created or not started: "+url);
 		}
 		
@@ -344,7 +359,7 @@ public class SystemInfoService extends BaseService{
 	 * @param connector jvm连接
 	 */
 	public void startWatcher(JVMConnector connector){
-		if(connector.getEnable().get()){
+		if(connector.isEnable()){
 			return;
 		}
 		maxSegSize = maxSegSize<1?1:maxSegSize;

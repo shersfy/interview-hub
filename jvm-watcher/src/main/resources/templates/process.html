@@ -23,17 +23,20 @@
 	            <th align="left">JVM本地进程</th>
 	            <th>&nbsp;</th>
 	            <th>&nbsp;</th>
+	            <th>&nbsp;</th>
 	        </tr>
 	    </thead>
 	    <tbody>
 	        <tr style="font-weight: bold;">
-	            <td>PID</td>
-	            <td>主程序</td>
+	            <td width="10%">PID</td>
+	            <td width="10%">已监视</td>
+	            <td width="30%">主程序</td>
 	            <td>可执行程序</td>
 	        </tr>
 	        <tr th:each="process: ${processes}">
-	            <td width="10%"><a class="jvm-process" href="javascript:void(0);" th:text="${process.pid}"></a></td>
-	            <td width="30%" th:text="${process.name}"></td>
+	            <td><a class="jvm-process" href="javascript:void(0);" th:text="${process.pid}" title="创建监视连接"></a></td>
+	            <td><div th:style="|height:20px; background-image: url('imgs/${process.watch?'ok.png':'no.png'}');background-repeat: no-repeat;|"></div></td>
+	            <td th:text="${process.name}"></td>
 	            <td th:text="${process.exePath}"></td>
 	        </tr>
 	    </tbody>
