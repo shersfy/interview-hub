@@ -27,7 +27,7 @@ var watcherGC = {
 
 	intervalId: 0,
 	// gc chart
-	initChart: function(title, subjects, xdata, ydata){
+	initChart: function(title, subjects, xdata, yname, ydata){
 		var gcChart = echarts.init(document.getElementById(title.text+'Chart'));
 		var option = {
 				title : title,
@@ -52,7 +52,8 @@ var watcherGC = {
 					}
 				],
 				yAxis : {
-							type : 'value'
+							name : yname,
+						    type : 'value'
 						},
 				series : ydata
 		};
@@ -88,25 +89,46 @@ var watcherGC = {
 				
 				var subjects = result.model.subjects; // 类型元素
 				var xdata    = result.model.xdata; // x时间元素
-				var ydata    = new Array(subjects.length); // 数据元素
+				
+				var percentYdata = new Array(subjects.length); // 百分比
+				var countYdata   = new Array(subjects.length); // 统计次数
+				var timeYdata    = new Array(subjects.length); // 回收时间
 
-				for(var i=0; i<ydata.length; i++){
-					ydata[i] = new Ydata(subjects[i], xdata.length);
+				for(var i=0; i<percentYdata.length; i++){
+					percentYdata[i] = new Ydata(subjects[i], xdata.length);
+					
+					countYdata[i] 	= new Ydata(subjects[i], xdata.length);
+					timeYdata[i] 	= new Ydata(subjects[i], xdata.length);
+					
+					countYdata[i].smooth = false;
+					timeYdata[i].smooth  = false;
 				}
 				
 				for(var i=0; i<subjects.length; i++){
 					for(var j=0; j<xdata.length; j++){
-						ydata[i].data[j] = parseInt(result.model.ydata[i][j].percent*100);
+						percentYdata[i].data[j] = parseInt(result.model.ydata[i][j].percent*100);
+						countYdata[i].data[j]   = result.model.ydata[i][j].collectionCnt;
+						timeYdata[i].data[j]    = result.model.ydata[i][j].collectionTime/1000;
 					}
 				}
 				
 				// 渲染图表
 				// gc chart
 				var gc = {
-						text: 'GC-Chart',
-						subtext: 'GC回收率 %'
+						text: 'GC',
+						subtext: ''
 					};
-				watcherGC.initChart(gc, subjects, xdata, ydata);
+				watcherGC.initChart(gc, subjects, xdata, 'GC回收率 (%)', percentYdata);
+				var count = {
+						text: 'GC-Count',
+						subtext: ''
+				};
+				watcherGC.initChart(count, subjects, xdata, 'GC次数', countYdata);
+				var time = {
+						text: 'GC-Time',
+						subtext: ''
+				};
+				watcherGC.initChart(time, subjects, xdata, '最近一次GC时间(秒s)',timeYdata);
 				
 			}
 			

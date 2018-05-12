@@ -23,10 +23,12 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.shersfy.jwatcher.entity.GarbageCollector;
 import org.shersfy.jwatcher.entity.MemoSegment;
 import org.shersfy.jwatcher.entity.MemoUsage;
 import org.shersfy.jwatcher.service.SystemInfoService;
+import org.shersfy.jwatcher.utils.FileUtil;
 
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
@@ -217,28 +219,32 @@ public class JVMConnector {
 						}
 						percent = percent<0?0:percent;
 						List<GarbageCollectorMXBean> gcList = getGCList();
-						for(GarbageCollectorMXBean newgc: gcList){
+						for(GarbageCollectorMXBean gc: gcList){
 
-							GarbageCollector oldgc = segment.getGcs().get(newgc.getName());
-							if(oldgc==null){
-								oldgc = new GarbageCollector(newgc.getName());
+							GarbageCollector curGC = new GarbageCollector(gc.getCollectionCount(), gc.getCollectionTime());
+							curGC.setName(gc.getName());
+							segment.getGcs().put(gc.getName(), curGC);
+							
+							GarbageCollector preGC = preNode.getGcs().get(gc.getName());
+							if(preGC==null){
+								preGC = curGC;
 							}
 							// 是否发生GC
-							if(newgc.getCollectionCount()>oldgc.getCollectionCnt()){
-								oldgc.setTaking(true);
-								oldgc.setPercent(percent);
+							if(curGC.getCollectionCnt()>preGC.getCollectionCnt()){
+								curGC.setTaking(true);
 							} else {
-								oldgc.setTaking(false);
-								oldgc.setPercent(0);
+								curGC.setTaking(false);
+								curGC.setPercent(0);
 							}
-							oldgc.setCollectionCnt(newgc.getCollectionCount());
-							oldgc.setCollectionTime(newgc.getCollectionTime());
+							// 发生GC
+							if(curGC.isTaking() || preGC.isTaking()){
+								curGC.setPercent(percent);
+							}
 							
-							segment.getGcs().put(oldgc.getName(), oldgc);
 						}
 						// 缓存segment
 						getMemoSegments().add(segment);
-						
+						// 睡眠间隔时间
 						Thread.sleep(getInterval().get());
 					} catch (Throwable e) {
 						JVMConnector.this.stopWatcher();
