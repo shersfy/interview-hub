@@ -23,12 +23,10 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateFormatUtils;
 import org.shersfy.jwatcher.entity.GarbageCollector;
 import org.shersfy.jwatcher.entity.MemoSegment;
 import org.shersfy.jwatcher.entity.MemoUsage;
 import org.shersfy.jwatcher.service.SystemInfoService;
-import org.shersfy.jwatcher.utils.FileUtil;
 
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
