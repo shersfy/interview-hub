@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.shersfy.jwatcher.beans.ResultCode;
+import org.shersfy.jwatcher.filter.JWatcherFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -20,13 +21,10 @@ public class BaseController {
 	/**处理失败**/
 	protected static final int FAIL 	= ResultCode.FAIL;
 	
-	protected static final String basepath = "basePath";
-	
 	@ModelAttribute
 	public void setRequestAndResponse(HttpServletRequest request, HttpServletResponse response) {
 		THREAD_LOCAL_REQUEST.set(request);
 		THREAD_LOCAL_RESPONSE.set(response);
-		setBasePath(request);
 	}
 
 	public HttpServletRequest getRequest() {
@@ -40,18 +38,7 @@ public class BaseController {
 	/**获取根路径**/
 	protected String getBasePath() {
 		HttpServletRequest request = getRequest();
-		return request.getAttribute(basepath).toString();
-	}
-
-	protected void setBasePath(HttpServletRequest request) {
-		StringBuffer basePath = new StringBuffer(0);
-		basePath.append(request.getScheme()).append("://");
-		basePath.append(request.getServerName());
-		if(request.getServerPort() != 80 && request.getServerPort() != 443){
-			basePath.append(":").append(request.getServerPort());
-		}
-		basePath.append(request.getContextPath());
-		request.setAttribute(basepath, basePath.toString());
+		return request.getAttribute(JWatcherFilter.basepath).toString();
 	}
 
 }

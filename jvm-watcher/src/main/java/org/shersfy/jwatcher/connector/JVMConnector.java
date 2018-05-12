@@ -23,6 +23,7 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.shersfy.jwatcher.entity.GarbageCollector;
 import org.shersfy.jwatcher.entity.MemoSegment;
 import org.shersfy.jwatcher.entity.MemoUsage;
 import org.shersfy.jwatcher.service.SystemInfoService;
@@ -148,7 +149,7 @@ public class JVMConnector {
 		return threadBean;
 	}
 	
-	public List<GarbageCollectorMXBean> getGC() throws IOException{
+	public List<GarbageCollectorMXBean> getGCList() throws IOException{
 		MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
 		List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getPlatformMXBeans(conn, GarbageCollectorMXBean.class);
 		return gcBeans;
@@ -200,6 +201,42 @@ public class JVMConnector {
 						if(getMemoSegments().size()>=getMaxSegSize().get()){
 							getMemoSegments().poll();
 						}
+						
+						// GC
+						MemoSegment preNode = segment;
+						MemoSegment current = segment;
+						if(!getMemoSegments().isEmpty()){
+							MemoSegment[] arr = new MemoSegment [getMemoSegments().size()];
+							preNode = getMemoSegments().toArray(arr)[arr.length-1];
+						}
+						double percent = 0;
+						if(!preNode.getHeapPools().isEmpty() && !current.getHeapPools().isEmpty()){
+							long pre = preNode.getHeapPools().get(0).getUsed();
+							long cur = current.getHeapPools().get(0).getUsed();
+							percent = (double)(pre-cur)/pre;
+						}
+						percent = percent<0?0:percent;
+						List<GarbageCollectorMXBean> gcList = getGCList();
+						for(GarbageCollectorMXBean newgc: gcList){
+
+							GarbageCollector oldgc = segment.getGcs().get(newgc.getName());
+							if(oldgc==null){
+								oldgc = new GarbageCollector(newgc.getName());
+							}
+							// 是否发生GC
+							if(newgc.getCollectionCount()>oldgc.getCollectionCnt()){
+								oldgc.setTaking(true);
+								oldgc.setPercent(percent);
+							} else {
+								oldgc.setTaking(false);
+								oldgc.setPercent(0);
+							}
+							oldgc.setCollectionCnt(newgc.getCollectionCount());
+							oldgc.setCollectionTime(newgc.getCollectionTime());
+							
+							segment.getGcs().put(oldgc.getName(), oldgc);
+						}
+						// 缓存segment
 						getMemoSegments().add(segment);
 						
 						Thread.sleep(getInterval().get());

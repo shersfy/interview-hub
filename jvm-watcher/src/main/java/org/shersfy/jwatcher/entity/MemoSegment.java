@@ -1,7 +1,9 @@
 package org.shersfy.jwatcher.entity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MemoSegment extends BaseEntity {
 
@@ -13,10 +15,12 @@ public class MemoSegment extends BaseEntity {
 	private long createTime;
 	private List<MemoUsage> heapPools;
 	private List<MemoUsage> nonHeapPools;
+	private Map<String, GarbageCollector> gcs;
 	
 	public MemoSegment(){
 		heapPools = new ArrayList<>();
 		nonHeapPools = new ArrayList<>();
+		gcs = new HashMap<>();
 	}
 	
 	public List<MemoUsage> getHeapPools() {
@@ -41,6 +45,14 @@ public class MemoSegment extends BaseEntity {
 
 	public void setCreateTime(long createTime) {
 		this.createTime = createTime;
+	}
+
+	public Map<String, GarbageCollector> getGcs() {
+		return gcs;
+	}
+
+	public void setGcs(Map<String, GarbageCollector> gcs) {
+		this.gcs = gcs;
 	}
 
 }

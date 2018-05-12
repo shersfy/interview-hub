@@ -73,4 +73,38 @@ public class ProcessController extends BaseController {
 		return res;
 	}
 	
+	@RequestMapping("/gc")
+	@ResponseBody
+	public ModelAndView getGCDetail(String url){
+
+		ModelAndView mv = new ModelAndView("watcher_gc");
+		try {
+			JVMConnector connector = systemInfoService.getConnector(url);
+			mv.addObject("url", url);
+			mv.addObject("jvm", systemInfoService.getServerJVM(connector));
+			mv.addObject("gcnames", systemInfoService.getServerGCNames(connector));
+		} catch (IOException e) {
+			LOGGER.error(url, e);
+			mv.setViewName("redirect:/error");
+			mv.addObject("status", FAIL);
+			mv.addObject("error", e.getMessage());
+			mv.addObject("message", e.getMessage());
+		}
+		return mv;
+	}
+	
+	@RequestMapping("/gchart")
+	@ResponseBody
+	public Result getGcChart(String url){
+		
+		Result res = new Result();
+		try {
+			res.setModel(systemInfoService.getGcChart(url));
+		} catch (IOException e) {
+			LOGGER.error(url, e);
+			res.setCode(FAIL);
+			res.setMsg(e.getMessage());
+		}
+		return res;
+	}
 }

@@ -26,6 +26,7 @@ import javax.management.remote.JMXServiceURL;
 import javax.swing.filechooser.FileSystemView;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.hyperic.sigar.CpuInfo;
 import org.hyperic.sigar.CpuPerc;
 import org.hyperic.sigar.FileSystem;
@@ -40,6 +41,8 @@ import org.shersfy.jwatcher.connector.JVMConnector;
 import org.shersfy.jwatcher.connector.WatcherCallback;
 import org.shersfy.jwatcher.entity.CPUInfo;
 import org.shersfy.jwatcher.entity.DiskInfo;
+import org.shersfy.jwatcher.entity.GarbageCollector;
+import org.shersfy.jwatcher.entity.GcChart;
 import org.shersfy.jwatcher.entity.JVMInfo;
 import org.shersfy.jwatcher.entity.MemoSegment;
 import org.shersfy.jwatcher.entity.JVMProcess;
@@ -272,6 +275,37 @@ public class SystemInfoService extends BaseService{
 		return data;
 	}
 	
+	public GcChart getGcChart(String url) throws IOException{
+		JVMConnector connector = conf.getCache().get(url);
+		if(connector==null || !connector.isEnable()){
+			throw new IOException("JVMConnector is not created or not started: "+url);
+		}
+		
+		MemoSegment[] data = connector.getMemoSegments().toArray(new MemoSegment[connector.getMemoSegments().size()]);
+		connector.updatetime();
+		
+		
+		GcChart chart = new GcChart();
+		chart.setName("GC Chart");
+		if(data.length>0){
+			Map<String, GarbageCollector> gcs = data[data.length-1].getGcs();
+			gcs.keySet().forEach(key->{
+				chart.getSubjects().add(key);
+				chart.getYdata().add(new ArrayList<>());
+			});
+		}
+		
+		for(MemoSegment seg :data){
+			chart.getXdata().add(DateFormatUtils.format(seg.getCreateTime(), "mm:ss"));
+			for(int i=0; i<chart.getSubjects().size(); i++){
+				GarbageCollector gc = seg.getGcs().get(chart.getSubjects().get(i));
+				chart.getYdata().get(i).add(gc);
+			}
+		}
+		
+		return chart;
+	}
+	
 	public String getServerOS(JVMConnector connector){
 		String info = "";
 		if(connector == null){
@@ -320,7 +354,7 @@ public class SystemInfoService extends BaseService{
 			return list;
 		}
 		try {
-			List<GarbageCollectorMXBean> beans = connector.getGC();
+			List<GarbageCollectorMXBean> beans = connector.getGCList();
 			beans.forEach(bean->{
 				list.add(String.format("%s: %s", 
 						bean.getName(),
