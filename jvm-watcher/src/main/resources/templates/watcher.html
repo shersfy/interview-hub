@@ -51,14 +51,17 @@
     	<a id="close-btn" status="off" href="javascript:void(0)" class="easyui-linkbutton" style="width:80px; margin-left: 10px;">断开</a>
     	<a ></a>
     </div>
-	<div id="heapChart" class="echarts-long"></div>
-	<div id="heap-detailChart" class="echarts-long"></div>
-	<div id="non-heapChart" class="echarts-long"></div>
-	<div id="non-heap-detailChart" class="echarts-long"></div>
-	
-	<div id="heap-edenChart" class="echarts-long"></div>
-	<div id="heap-survivorChart" class="echarts-long"></div>
-	<div id="heap-tenuredChart" class="echarts-long"></div>
-	
+    <div class="charts-area">
+		<div id="heapChart" class="echarts-long"></div>
+		<div id="heap-detailChart" class="echarts-long echarts-right"></div>
+		
+		<div id="non-heapChart" class="echarts-long"></div>
+		<div id="non-heap-detailChart" class="echarts-long echarts-right"></div>
+		
+		<div id="heap-edenChart" class="echarts-long"></div>
+		<div id="heap-survivorChart" class="echarts-long echarts-right"></div>
+		
+		<div id="heap-tenuredChart" class="echarts-long"></div>
+	</div>
 </body>
 </html>
